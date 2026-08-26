@@ -2,7 +2,7 @@
 
 set -e
 
-PROG1=geesefs
+PROG1=akavefs
 PROG2=goofys
 PROG3=s3fs
 

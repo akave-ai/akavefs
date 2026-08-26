@@ -81,7 +81,7 @@ The goal is to provide high-throughput access to object storage without requirin
 ```bash
 git clone https://github.com/akave-ai/akavefs.git
 cd akavefs
-go build
+make build
 ```
 
 FUSE or FUSE3 must also be installed on the host.
@@ -154,7 +154,7 @@ AkaveFS inherits many configuration and performance tuning options from GeeseFS.
 Run:
 
 ```bash
-./akavefs -h
+./akavefs --help
 ```
 
 to view the currently supported options.

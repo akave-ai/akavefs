@@ -18,46 +18,46 @@ jobs:
         go-version: 1.25
 
     - name: Build linux amd64
-      run: env CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o geesefs-linux-amd64 -v && ln -s geesefs-linux-amd64 geesefs
+      run: env CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o akavefs-linux-amd64 -v && ln -s akavefs-linux-amd64 akavefs
 
     - name: Build linux arm64
-      run: env CGO_ENABLED=0 GOARCH=arm64 go build -o geesefs-linux-arm64 -v
+      run: env CGO_ENABLED=0 GOARCH=arm64 go build -o akavefs-linux-arm64 -v
 
     - name: Build Mac amd64
-      run: env CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -o geesefs-mac-amd64 -v
+      run: env CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -o akavefs-mac-amd64 -v
 
     - name: Build Mac arm64
-      run: env CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build -o geesefs-mac-arm64 -v
+      run: env CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build -o akavefs-mac-arm64 -v
 
     - name: Build Windows x64
-      run: env CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -o geesefs-win-x64.exe -v
+      run: env CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -o akavefs-win-x64.exe -v
 
     - name: Build tests
-      run: go test -c github.com/yandex-cloud/geesefs/core -o geesefs-tests-linux-amd64
+      run: go test -c github.com/yandex-cloud/geesefs/core -o akavefs-tests-linux-amd64
 
     - name: Publish to S3
       run: |
         sudo apt-get -y install s3cmd
-        s3cmd ${{secrets.S3CMD}} put geesefs-linux-amd64 s3://${{secrets.S3BUCKET}}/geesefs-linux-amd64
-        s3cmd ${{secrets.S3CMD}} put geesefs-linux-arm64 s3://${{secrets.S3BUCKET}}/geesefs-linux-arm64
-        s3cmd ${{secrets.S3CMD}} put geesefs-mac-amd64 s3://${{secrets.S3BUCKET}}/geesefs-mac-amd64
-        s3cmd ${{secrets.S3CMD}} put geesefs-mac-arm64 s3://${{secrets.S3BUCKET}}/geesefs-mac-arm64
-        s3cmd ${{secrets.S3CMD}} put geesefs-win-x64.exe s3://${{secrets.S3BUCKET}}/geesefs-win-x64.exe
-        s3cmd ${{secrets.S3CMD}} put geesefs-tests-linux-amd64 s3://${{secrets.S3BUCKET}}/geesefs-tests-linux-amd64
-        s3cmd ${{secrets.S3CMD}} put geesefs-linux-amd64 s3://${{secrets.S3BUCKET}}/${GITHUB_REF/refs\/tags\/v/}/geesefs-linux-amd64
-        s3cmd ${{secrets.S3CMD}} put geesefs-linux-arm64 s3://${{secrets.S3BUCKET}}/${GITHUB_REF/refs\/tags\/v/}/geesefs-linux-arm64
-        s3cmd ${{secrets.S3CMD}} put geesefs-mac-amd64 s3://${{secrets.S3BUCKET}}/${GITHUB_REF/refs\/tags\/v/}/geesefs-mac-amd64
-        s3cmd ${{secrets.S3CMD}} put geesefs-mac-arm64 s3://${{secrets.S3BUCKET}}/${GITHUB_REF/refs\/tags\/v/}/geesefs-mac-arm64
-        s3cmd ${{secrets.S3CMD}} put geesefs-win-x64.exe s3://${{secrets.S3BUCKET}}/${GITHUB_REF/refs\/tags\/v/}/geesefs-win-x64.exe
-        s3cmd ${{secrets.S3CMD}} put geesefs-tests-linux-amd64 s3://${{secrets.S3BUCKET}}/${GITHUB_REF/refs\/tags\/v/}/geesefs-tests-linux-amd64
+        s3cmd ${{secrets.S3CMD}} put akavefs-linux-amd64 s3://${{secrets.S3BUCKET}}/akavefs-linux-amd64
+        s3cmd ${{secrets.S3CMD}} put akavefs-linux-arm64 s3://${{secrets.S3BUCKET}}/akavefs-linux-arm64
+        s3cmd ${{secrets.S3CMD}} put akavefs-mac-amd64 s3://${{secrets.S3BUCKET}}/akavefs-mac-amd64
+        s3cmd ${{secrets.S3CMD}} put akavefs-mac-arm64 s3://${{secrets.S3BUCKET}}/akavefs-mac-arm64
+        s3cmd ${{secrets.S3CMD}} put akavefs-win-x64.exe s3://${{secrets.S3BUCKET}}/akavefs-win-x64.exe
+        s3cmd ${{secrets.S3CMD}} put akavefs-tests-linux-amd64 s3://${{secrets.S3BUCKET}}/akavefs-tests-linux-amd64
+        s3cmd ${{secrets.S3CMD}} put akavefs-linux-amd64 s3://${{secrets.S3BUCKET}}/${GITHUB_REF/refs\/tags\/v/}/akavefs-linux-amd64
+        s3cmd ${{secrets.S3CMD}} put akavefs-linux-arm64 s3://${{secrets.S3BUCKET}}/${GITHUB_REF/refs\/tags\/v/}/akavefs-linux-arm64
+        s3cmd ${{secrets.S3CMD}} put akavefs-mac-amd64 s3://${{secrets.S3BUCKET}}/${GITHUB_REF/refs\/tags\/v/}/akavefs-mac-amd64
+        s3cmd ${{secrets.S3CMD}} put akavefs-mac-arm64 s3://${{secrets.S3BUCKET}}/${GITHUB_REF/refs\/tags\/v/}/akavefs-mac-arm64
+        s3cmd ${{secrets.S3CMD}} put akavefs-win-x64.exe s3://${{secrets.S3BUCKET}}/${GITHUB_REF/refs\/tags\/v/}/akavefs-win-x64.exe
+        s3cmd ${{secrets.S3CMD}} put akavefs-tests-linux-amd64 s3://${{secrets.S3BUCKET}}/${GITHUB_REF/refs\/tags\/v/}/akavefs-tests-linux-amd64
 
     - uses: "marvinpinto/action-automatic-releases@latest"
       with:
         repo_token: "${{ secrets.GITHUB_TOKEN }}"
         prerelease: false
         files: |
-          geesefs-linux-amd64
-          geesefs-linux-arm64
-          geesefs-mac-amd64
-          geesefs-mac-arm64
-          geesefs-win-x64.exe
+          akavefs-linux-amd64
+          akavefs-linux-arm64
+          akavefs-mac-amd64
+          akavefs-mac-arm64
+          akavefs-win-x64.exe

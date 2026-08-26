@@ -8,11 +8,11 @@ export CGO_ENABLED = 0
 %:
 	dh $@ --builddirectory=_build --buildsystem=golang --with=golang
 
-#override_dh_auto_build:
-#	cd _build && go install -trimpath -v -p 8 github.com/yandex-cloud/geesefs
+override_dh_auto_build:
+	go build -trimpath -o _build/akavefs .
 
 override_dh_auto_test:
 	cd _build
 
 override_dh_auto_install:
-	dh_auto_install -- --no-source
+	dh_install
