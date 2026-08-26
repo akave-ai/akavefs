@@ -254,4 +254,1139 @@ func (s *S3Backend) ensureFreshIAMToken() {
 		return // refreshed by a concurrent caller
 	}
 	if err := s.TryIAM(); err != nil {
-		s3Log.Infof("Lazy IAM refresh failed: -½×İ­¢G§²ÚîÆ­yÕ±¥ÁÁ½Ø€ñÙ¥Ñ…±¥™™å…¹‘•àµÑ•…´¹ÉÔø€Q¡Ô°€ÌÀ5…ä€ÈÀÈĞ€ÄĞèÔÌèÀÔ€¬ÀÌÀÀ()••Í•™Ì€ À¸ĞÄ¸À¤Õ¹ÍÑ…‰±”ìÕÉ•¹äõµ•‘¥Õ´((€€¨AÉ•Ù•¹ĞÍ½µ”Í¥ÑÕ…Ñ¥½¹Ìİ¡•É”„µÕ±Ñ¥Á…ÉĞÕÁ±½…½Õ±‰”¹½Ğ½µÁ±•Ñ•((€´´Y¥Ñ…±¥ä¥±¥ÁÁ½Ø€ñÙ¥Ñ…±¥™™å…¹‘•àµÑ•…´¹ÉÔø€QÕ”°€ÈÄ5…ä€ÈÀÈĞ€ÄÈèÔÜèĞØ€¬ÀÌÀÀ()••Í•™Ì€ À¸ĞÀ¸ä¤Õ¹ÍÑ…‰±”ìÕÉ•¹äõµ•‘¥Õ´((€€¨%µÁ±•µ•¹Ğ€‰‘•‰Õœˆá…ÑÑÈÑ¼‘ÕµÀ¥¹Ñ•É¹…°™¥±”½‘¥É•Ñ½ÉäÍÑ…Ñ•Ì½¹±¥¹”(€€¨¼¹½Ğ‘•±•Ñ”‘•ÍÑ¥¹…Ñ¥½¸™¥±”İ¡•¸É•¹…µ¥¹œ…¹½Ñ¡•È™¥±”½Ù•È¥Ğ(€€¨I•ÑÕÉ¸••Í•™ÌÙ•ÉÍ¥½¸¥¸„¡¥‘‘•¸•áÑ•¹‘•…ÑÑÉ¥‰ÕÑ”€‰••Í•™Ìˆ((€´´Y¥Ñ…±¥ä¥±¥ÁÁ½Ø€ñÙ¥Ñ…±¥™™å…¹‘•àµÑ•…´¹ÉÔø€É¤°€ÄÜ5…ä€ÈÀÈĞ€ÄÜèÔØèÈÈ€¬ÀÌÀÀ()••Í•™Ì€ À¸ĞÀ¸à¤Õ¹ÍÑ…‰±”ìÕÉ•¹äõµ•‘¥Õ´((€€¨AÉ•Ù•¹ĞÁ…¹¥Œ€¡É…Í ¤Á½ÍÍ¥‰±”‘ÕÉ¥¹œ™±ÕÍ¡¥¹œ…¹¥¹½‘”•áÁ¥É…Ñ¥½¸((€´´Y¥Ñ…±¥ä¥±¥ÁÁ½Ø€ñÙ¥Ñ…±¥™™å…¹‘•àµÑ•…´¹ÉÔø€5½¸°€ÈÈÁÈ€ÈÀÈĞ€ÄÈèĞàèÈÌ€¬ÀÌÀÀ()••Í•™Ì€ À¸ĞÀ¸Ü¤Õ¹ÍÑ…‰±”ìÕÉ•¹äõµ•‘¥Õ´((€€¨AÉ•Ù•¹ĞÁ…¹¥ŒÁ½ÍÍ¥‰±”½¸½¹™±¥Ğ‘ÕÉ¥¹œµÕ±Ñ¥Á…ÉĞ½µÁ±•Ñ”((€´´Y¥Ñ…±¥ä¥±¥ÁÁ½Ø€ñÙ¥Ñ…±¥™™å…¹‘•àµÑ•…´¹ÉÔø€QÕ”°€ÀÈÁÈ€ÈÀÈĞ€ÈÌèÌĞèÔÜ€¬ÀÌÀÀ()••Í•™Ì€ À¸ĞÀ¸Ø¤Õ¹ÍÑ…‰±”ìÕÉ•¹äõµ•‘¥Õ´((€€¨AÉ•Ù•¹ĞÕ¹¹••ÍÍ…ÉäÉ•ÕÁ±½…‘Ì‘ÕÉ¥¹œÁ…É…±±•°±¥¹•…ÈİÉ¥Ñ”…¹¡•¬¥Ğ¥¸Ñ•ÍÑÌ(€€¨±±½ÜÑ¼ÕÍÑ½µ¥é”]LM,É•ÑÉäÁ…É…µ•Ñ•ÉÌ((€´´Y¥Ñ…±¥ä¥±¥ÁÁ½Ø€ñÙ¥Ñ…±¥™™å…¹‘•àµÑ•…´¹ÉÔø€]•°€ÈÜ5…È€ÈÀÈĞ€ÄÈèÀàèÔÈ€¬ÀÌÀÀ()••Í•™Ì€ À¸ĞÀ¸Ô¤Õ¹ÍÑ…‰±”ìÕÉ•¹äõµ•‘¥Õ´((€€¨¥à…¹½Ñ¡•È‰Õœ¥¸É•…‘…¡•…µ•É¥¹œ…±Í¼±•…‘¥¹œÑ¼¥¹…‰¥±¥ÑäÑ¼™±ÕÍ É…¹‘½´İÉ¥Ñ•Ì(€€€…¹…‘„Ñ•ÍĞ™½È¥ĞÑ½¼((€´´Y¥Ñ…±¥ä¥±¥ÁÁ½Ø€ñÙ¥Ñ…±¥™™å…¹‘•àµÑ•…´¹ÉÔø€]•°€ÈÀ5…È€ÈÀÈĞ€ÄÔèÄÈèÈÈ€¬ÀÌÀÀ()••Í•™Ì€ À¸ĞÀ¸Ğ¤Õ¹ÍÑ…‰±”ìÕÉ•¹äõµ•‘¥Õ´((€€¨¥àÁ½ÍÍ¥‰±”¡…¹Ì‘ÕÉ¥¹œÉ…¹‘½´İÉ¥Ñ”…™Ñ•È™Õ±°±¥¹•…È½Ù•ÉİÉ¥Ñ”((€´´Y¥Ñ…±¥ä¥±¥ÁÁ½Ø€ñÙ¥Ñ…±¥™™å…¹‘•àµÑ•…´¹ÉÔø€]•°€ÈÀ5…È€ÈÀÈĞ€ÄÈèÔÜèÄä€¬ÀÌÀÀ()••Í•™Ì€ À¸ĞÀ¸Ì¤Õ¹ÍÑ…‰±”ìÕÉ•¹äõµ•‘¥Õ´((€€¨¥àÉ•…µµ½‘¥™äµİÉ¥Ñ”İ¥Ñ •Ù¥Ñ•µÕ±Ñ¥Á…ÉĞÁ…ÉÑÌ¡…¹¥¹œ€¡¥¹ÑÉ½‘Õ•¥¸€À¸ĞÀ¸À¤(€€¨¥à¹½¸µİ½É­¥¹œ€´µÉ•…µÉ•ÑÉäµ…ÑÑ•µÁÑÌ™±…œ((€´´Y¥Ñ…±¥ä¥±¥ÁÁ½Ø€ñÙ¥Ñ…±¥™™å…¹‘•àµÑ•…´¹ÉÔø€]•°€ÄÌ5…È€ÈÀÈĞ€ÄÜèÄĞèÈà€¬ÀÌÀÀ()••Í•™Ì€ À¸ĞÀ¸È¤Õ¹ÍÑ…‰±”ìÕÉ•¹äõµ•‘¥Õ´((€€¨AQ ‰Õ™¥á•Ì(€€¨É•‘Õ”Ñ•ÍĞ½¹ÕÉÉ•¹äÑ¼€ÄÀ((€´´Y¥Ñ…±¥ä¥±¥ÁÁ½Ø€ñÙ¥Ñ…±¥™™å…¹‘•àµÑ•…´¹ÉÔø€]•°€Èà•ˆ€ÈÀÈĞ€ÄÈèÈÌèÀĞ€¬ÀÌÀÀ()••Í•™Ì€ À¸ĞÀ¸Ä¤Õ¹ÍÑ…‰±”ìÕÉ•¹äõµ•‘¥Õ´((€€¨¥à‘•±•Ñ•™¥±•Ì¹½Ğ‘¥Í…ÁÁ•…É¥¹œ™É½´‘¥É•Ñ½É¥•ÌÉ•±½…‘¥¹œÕÍ¥¹œÍ±ÕÉÀ½ÁÑ¥µ¥Í…Ñ¥½¸(€€¨¥àÑİ¼É…É•±äÁ½ÍÍ¥‰±”Á…¹¥Ì(€€¨I•Á½ÉĞ½¹™±¥Ğ…¹ÍÑ½ÀÕÁ±½…É•ÑÉ¥•Ìİ¡•¸É••¥Ù¥¹œ„€ĞÀĞ™É½´UÁ±½…‘A…ÉĞ((€´´Y¥Ñ…±¥ä¥±¥ÁÁ½Ø€ñÙ¥Ñ…±¥™™å…¹‘•àµÑ•…´¹ÉÔø€5½¸°€ÄÈ•ˆ€ÈÀÈĞ€ÄàèĞĞèÌä€¬ÀÌÀÀ()••Í•™Ì€ À¸ĞÀ¸À¤Õ¹ÍÑ…‰±”ìÕÉ•¹äõµ•‘¥Õ´((€€¨I•™…Ñ½È¥¹Ñ•É¹…°‰Õ™™•È±¥ÍĞ½Á•É…Ñ¥½¹ÌÑ¼¥µÁÉ½Ù”É•…™İÉ¥Ñ”ÍÁ••…¹(€€€½‘”µ…¥¹Ñ…¥¹…‰¥±¥Ñä(€€¨I•ÑÉäÕ¹•áÁ•Ñ•=Ì‘ÕÉ¥¹œÉ•…‘Ì€¡LÌµ…ä‘É½ÀÑ¡”½¹¹•Ñ¥½¸½¸(€€€Ñ•µÁ½É…Éä‘…Ñ„Õ¹…Ù…¥±…‰¥±¥Ñä¤(€€¨¼¹½ĞÕÍ”µÕ±Ñ¥Á…ÉĞ½Áå¥¹œ™½Èµ•Ñ…‘…Ñ„µ½¹±äÕÁ‘…Ñ•Ì(€€¨1¥µ¥ĞµÕ±Ñ¥Á…ÉĞ½Áå¥¹œÁ…É…±±•±¥Í´Ñ¼€´µµ…àµÁ…É…±±•°µÁ…ÉÑÌ¥¹ÍÑ•…½˜™¥á•€ÄÈà(€€¨1½…µ•Ñ…‘…Ñ„‰•™½É”¡…¹¥¹œ¥Ğ°½Ñ¡•Éİ¥Í”¥Ğµ…ä‰”±½ÍĞ¥¸¹½¸µå…¹‘•à±½Õ‘Ì((€´´Y¥Ñ…±¥ä¥±¥ÁÁ½Ø€ñÙ¥Ñ…±¥™™å…¹‘•àµÑ•…´¹ÉÔø€É¤°€ÈÈ•Œ€ÈÀÈÌ€ÄÄèÔØèÀĞ€¬ÀÌÀÀ()••Í•™Ì€ À¸Ìä¸Ä¤Õ¹ÍÑ…‰±”ìÕÉ•¹äõµ•‘¥Õ´((€€¨¥à„µ•µ½Éä±•…¬¥¸¥¹½‘•Í	åQ¥µ”€¡•Ù¥Ñ•¥¹½‘•Ìİ•É”¹½ĞÉ•µ½Ù•™É½´Ñ¡”µ…À¤((€´´Y¥Ñ…±¥ä¥±¥ÁÁ½Ø€ñÙ¥Ñ…±¥™™å…¹‘•àµÑ•…´¹ÉÔø€]•°€ÀØ•Œ€ÈÀÈÌ€ÄĞèÈÜèÀÀ€¬ÀÌÀÀ()••Í•™Ì€ À¸Ìä¸À¤Õ¹ÍÑ…‰±”ìÕÉ•¹äõµ•‘¥Õ´((€€¨‘AQ ÍÕÁÁ½ÉĞ™½Èe…¹‘•à±½ÕLÌ¡ÑÑÁÌè¼½±½Õ¹å…¹‘•à¹ÉÔ½‘½Ì½ÍÑ½É…”½ÌÌ½…Á¤µÉ•˜½½‰©•Ğ½Á…Ñ ((€´´Y¥Ñ…±¥ä¥±¥ÁÁ½Ø€ñÙ¥Ñ…±¥™™å…¹‘•àµÑ•…´¹ÉÔø€É¤°€ÈĞ9½Ø€ÈÀÈÌ€ÄàèÔÈèÄÈ€¬ÀÌÀÀ()••Í•™Ì€ À¸Ìà¸Ô¤Õ¹ÍÑ…‰±”ìÕÉ•¹äõµ•‘¥Õ´((€€¨%µÁ±•µ•¹ĞÉ•…É•ÑÉ¥•Ì(€€¨¥à„É…É”‰ÕœÍ½µ•Ñ¥µ•ÌÁÉ•Ù•¹Ñ¥¹œ•Ù¥Ñ¥½¸½˜Õ¹ÕÍ•‘…Ñ„™É½´µ•µ½Éä((€´´Y¥Ñ…±¥ä¥±¥ÁÁ½Ø€ñÙ¥Ñ…±¥™™å…¹‘•àµÑ•…´¹ÉÔø€É¤°€ÄÌ=Ğ€ÈÀÈÌ€ÈÀèÔÔèÔà€¬ÀÌÀÀ()••Í•™Ì€ À¸Ìà¸Ğ¤Õ¹ÍÑ…‰±”ìÕÉ•¹äõµ•‘¥Õ´((€€¨=ÁÑ¥µ¥Í”•áÑ•¹´ùİÉ¥Ñ”´ùÑÉÕ¹…Ñ”…Í”€´µ…­”••Í•L¹½ĞÍ•¹é•É½•ÌÑ¼Ñ¡”Í•ÉÙ•È(€€¨=ÁÑ¥µ¥Í”İÉ¥Ñ”±…É”™¥±”€´øÕÁ‘…Ñ”¡•…‘•È…Í”€´­••Àµ½‘¥™¥•™¥ÉÍĞÁ…ÉĞ¥¸(€€€µ•µ½ÉäÑ¼ÁÉ•Ù•¹Ğ™¥¹…±¥Í…Ñ¥½¸½˜µÕ±Ñ¥Á…ÉĞÕÁ±½…‘Ì…¹•áÑÉ„½Áå¥¹œ½˜Ñ¡”(€€€İ¡½±”™¥±”¥¹Ñ¼Í•±˜(€€¨¥àÑ¡”±…ÍĞ‰Õœ¥¸Á…É…±±•°±¥ÍÑ¥¹Ì°…‘Ñ•ÍÑÌ™½È±¥ÍÑ¥¹Ì€˜•Ù¥Ñ¥½¸(€€€Ñ¼ÁÉ•Ù•¹Ğ™ÕÑÕÉ”É•É•ÍÍ¥½¹Ì((€´´Y¥Ñ…±¥ä¥±¥ÁÁ½Ø€ñÙ¥Ñ…±¥™™å…¹‘•àµÑ•…´¹ÉÔø€Q¡Ô°€ÀÔ=Ğ€ÈÀÈÌ€ÄÔèÀĞèĞĞ€¬ÀÌÀÀ()••Í•™Ì€ À¸Ìà¸Ì¤Õ¹ÍÑ…‰±”ìÕÉ•¹äõµ•‘¥Õ´((€€¨¹½¹”µ½É”±¥ÍÑ¥¹œ™¥à€è¤((€´´Y¥Ñ…±¥ä¥±¥ÁÁ½Ø€ñÙ¥Ñ…±¥™™å…¹‘•àµÑ•…´¹ÉÔø€Q¡Ô°€ÈàM•À€ÈÀÈÌ€ÀÀèÀÄèÔÀ€¬ÀÌÀÀ()••Í•™Ì€ À¸Ìà¸È¤Õ¹ÍÑ…‰±”ìÕÉ•¹äõµ•‘¥Õ´((€€¨¥à±¥ÍÑ¥¹Ì…¹µ…­”Ñ¡•´™…ÍÑ•È……¥¸‰äÉ•µ½Ù¥¹œ<¡9xÈ¤((€´´Y¥Ñ…±¥ä¥±¥ÁÁ½Ø€ñÙ¥Ñ…±¥™™å…¹‘•àµÑ•…´¹ÉÔø€]•°€ÈÜM•À€ÈÀÈÌ€ÄĞèÄÌèÌÈ€¬ÀÌÀÀ()••Í•™Ì€ À¸Ìà¸Ä¤Õ¹ÍÑ…‰±”ìÕÉ•¹äõµ•‘¥Õ´((€€¨Mµ…±°™¥àÑ¼Ñ¡”¹•Ü€‰¥¹Ñ•±±¥•¹Ğ±¥ÍĞÕÑÑ¥¹œˆ((€´´Y¥Ñ…±¥ä¥±¥ÁÁ½Ø€ñÙ¥Ñ…±¥™™å…¹‘•àµÑ•…´¹ÉÔø€QÕ”°€ÈØM•À€ÈÀÈÌ€ÈÄèÀÔèÔÔ€¬ÀÌÀÀ()••Í•™Ì€ À¸Ìà¸À¤Õ¹ÍÑ…‰±”ìÕÉ•¹äõµ•‘¥Õ´((€€¨%µÁ±•µ•¹Ğ¥¹Ñ•±±¥•¹Ğ±¥ÍĞÕÑÑ¥¹œÑ¼¹½Ğ™Õ±±ä±½…±½¹œ‘¥É•Ñ½É¥•Ìİ¥Ñ (€€€„±½Ğ½˜™¥±•Ìİ¥Ñ ¡…É…Ñ•ÉÌ±•ÍÌÑ¡…¸€œ¼œ¥¸¹…µ•Ì€¡±¥­”€œ¸œ½È€œ´œ¤(€€¨¥à€‰Á…¹¥ŒèÕ¹…‰±”Ñ¼‘…•µ½¹¥é”è½Á•¸€½‘•Ø½ÍÑ‘•ÉÈè¹¼ÍÕ ‘•Ù¥”½È…‘‘É•ÍÌˆ(€€€İ¡•¸ÍÑ…ÉÑ¥¹œ™É½´™ÍÑ…ˆ½¸‰½½Ğ((€´´Y¥Ñ…±¥ä¥±¥ÁÁ½Ø€ñÙ¥Ñ…±¥™™å…¹‘•àµÑ•…´¹ÉÔø€QÕ”°€ÈØM•À€ÈÀÈÌ€ÄØèÈÔèÈÌ€¬ÀÌÀÀ()••Í•™Ì€ À¸ÌÜ¸Ü¤Õ¹ÍÑ…‰±”ìÕÉ•¹äõµ•‘¥Õ´((€€¨¼¹½Ğ•Ù¥Ğ¥¹½‘•Ì™É½´½Á•¸‘¥É•Ñ½É¥•Ì€¡Ñ¼ÁÉ•Ù•¹Ğ¥¹½ÉÉ•Ğ±¥ÍÑ¥¹Ì¤((€´´Y¥Ñ…±¥ä¥±¥ÁÁ½Ø€ñÙ¥Ñ…±¥™™å…¹‘•àµÑ•…´¹ÉÔø€É¤°€ÈÈM•À€ÈÀÈÌ€ÄàèÌÀèÈÀ€¬ÀÌÀÀ()••Í•™Ì€ À¸ÌÜ¸Ø¤Õ¹ÍÑ…‰±”ìÕÉ•¹äõµ•‘¥Õ´((€€¨¡…¹”•ÉÉ½È½‘”İ¥Ñ ‘¥Í…‰±”µá…ÑÑÈÑ¼9=MeLÑ¼ÁÉ•Ù•¹Ğ•ÉÉ½ÈÍÁ…´(€€¨¥Í…‰±”…ÕÑ½µ…Ñ¥ŒÍİ¥Ñ¡¥¹œÑ¼MQ9IÍÑ½É…”±…ÍÌ™½È½‰©•ÑÌÕ¹‘•È€ÄÈà-((€´´Y¥Ñ…±¥ä¥±¥ÁÁ½Ø€ñÙ¥Ñ…±¥™™å…¹‘•àµÑ•…´¹ÉÔø€]•°€ÈÀM•À€ÈÀÈÌ€ÄÈèÔäèÔà€¬ÀÌÀÀ()••Í•™Ì€ À¸ÌÜ¸Ô¤Õ¹ÍÑ…‰±”ìÕÉ•¹äõµ•‘¥Õ´((€€¨‘€´µ™Íå¹Œµ½¸µ±½Í”½ÁÑ¥½¸™½È±½Í”µÑ¼µ½Á•¸½¹Í¥ÍÑ•¹äµ½‘”°±¥­”¥¸½½™åÌ½ÌÍ™Ì((€´´Y¥Ñ…±¥ä¥±¥ÁÁ½Ø€ñÙ¥Ñ…±¥™™å…¹‘•àµÑ•…´¹ÉÔø€]•°€ÄÌM•À€ÈÀÈÌ€ÄàèÌØèÔØ€¬ÀÌÀÀ()••Í•™Ì€ À¸ÌÜ¸Ğ¤Õ¹ÍÑ…‰±”ìÕÉ•¹äõµ•‘¥Õ´((€€¨¥àÁ½Ñ•¹Ñ¥…°	Uè5½‘¥™¥•‘¡¥±‘É•¸½˜ááà€ğ€À(€€¨¥àÁ…É…±±•°¥¹½‘”•Ù¥Ñ¥½¸€˜±¥ÍÑ¥¹œ‰ÕœÍ½µ•Ñ¥µ•Ì±•…‘¥¹œÑ¼¥¹½ÉÉ•Ğ±¥ÍÑ¥¹Ì(€€¨UÁ‘…Ñ”á™ÍÑ•ÍÑÌ(€€¨¥à„Á½ÍÍ¥‰±”‰Õœİ¡•É”™±ÕÍ¡¥¹œ½˜„™¥±”½Õ±¹•Ù•È™¥¹¥Í €¡‘•Ñ•Ñ•¥¸á™ÍÑ•ÍÑÌ¤(€€¨AÉ¥¹Ğµ½Õ¹ĞÍÑ…ÑÕÌ‰½Ñ ½¸Ñ¡”½¹Í½±”…¹¥¸ÍåÍ±½œ((€´´Y¥Ñ…±¥ä¥±¥ÁÁ½Ø€ñÙ¥Ñ…±¥™™å…¹‘•àµÑ•…´¹ÉÔø€Q¡Ô°€ÄÜÕœ€ÈÀÈÌ€ÀÀèÀÌèÌÄ€¬ÀÌÀÀ()••Í•™Ì€ À¸ÌÜ¸Ì¤Õ¹ÍÑ…‰±”ìÕÉ•¹äõµ•‘¥Õ´((€€¨!½Ñ™¥à™½ÈÑ¡”¹•Üµ•Ñ…‘…Ñ„•Ù¥Ñ¥½¸™•…ÑÕÉ”€´¥Ğ½Õ±±•…Ñ¼€‰Á…¹¥Œè(€€€Õ¹­¹½İ¸¥¹½‘”ááàˆ‘Õ”Ñ¼¥¹½ÉÉ•Ğ•áÁ¥É…Ñ¥½¸Ñ¥µ•ÍÑ…µÀ‰•¥¹œÑ…­•¸(€€€¥¹Ñ¼…½Õ¹Ğ(€€¨±±½ÜÑ¼‘¥Í…‰±”á…ÑÑÉÌ™½È™…ÍÑ•È±¥ÍÑ¥¹Ì((€´´Y¥Ñ…±¥ä¥±¥ÁÁ½Ø€ñÙ¥Ñ…±¥™™å…¹‘•àµÑ•…´¹ÉÔø€É¤°€ÄÄÕœ€ÈÀÈÌ€ÄàèÌÔèÌØ€¬ÀÌÀÀ()••Í•™Ì€ À¸ÌÜ¸È¤Õ¹ÍÑ…‰±”ìÕÉ•¹äõµ•‘¥Õ´((€€¨¥à™¥±•Ì¹½ĞÍ¡½İ¥¹œÕÀ¥¸5…=L¥¹‘•È€¡…Á…ÉĞ™É½´‘¥É•Ñ½É¥•Ì…¹±Í€¥¸Ñ•Éµ¥¹…°¤((€´´Y¥Ñ…±¥ä¥±¥ÁÁ½Ø€ñÙ¥Ñ…±¥™™å…¹‘•àµÑ•…´¹ÉÔø€É¤°€ÄÄÕœ€ÈÀÈÌ€ÄĞèĞÀèÄä€¬ÀÌÀÀ()••Í•™Ì€ À¸ÌÜ¸Ä¤Õ¹ÍÑ…‰±”ìÕÉ•¹äõµ•‘¥Õ´((€€¨]¥¹‘½İÌ‰Õœ™¥á•Ì((€´´Y¥Ñ…±¥ä¥±¥ÁÁ½Ø€ñÙ¥Ñ…±¥™™å…¹‘•àµÑ•…´¹ÉÔø€É¤°€ÄÄÕœ€ÈÀÈÌ€ÀÀèÈÜèÔØ€¬ÀÌÀÀ()••Í•™Ì€ À¸ÌÜ¸À¤Õ¹ÍÑ…‰±”ìÕÉ•¹äõµ•‘¥Õ´((€€¨1¥µ¥Ğµ•Ñ…‘…Ñ„µ•µ½ÉäÕÍ…”€ ´µ•¹ÑÉäµ±¥µ¥Ğ¤(€€¨UÍ”I%IA1UL™½È™…ÍÑ•È‘¥É•Ñ½Éä±¥ÍÑ¥¹Ì(€€¨¥à„É…Í İ¡•¸‰•¥¹œÕ¹…‰±”Ñ¼É•ÅÕ•ÍĞÑ½­•¸™É½´%4(€€¨M½µ”É•™…Ñ½É¥¹œ((€´´Y¥Ñ…±¥ä¥±¥ÁÁ½Ø€ñÙ¥Ñ…±¥™™å…¹‘•àµÑ•…´¹ÉÔø€5½¸°€ÀÜÕœ€ÈÀÈÌ€ÄÌèÌÔèÈÄ€¬ÀÌÀÀ()••Í•™Ì€ À¸ÌØ¸È¤Õ¹ÍÑ…‰±”ìÕÉ•¹äõµ•‘¥Õ´((€€¨‘€´µÉ•™É•Í µ™¥±•¹…µ”…¹€´µ™±ÕÍ µ™¥±•¹…µ”Ñ¼…±±½ÜÑ¼¥¹Ù…±¥‘…Ñ”…¹™±ÕÍ …¡”½¸]¥¹‘½İÌ(€€¨I•™…Ñ½ÈÑ•ÍÑÌ…¹µ…­”Ñ¡•´İ½É¬½¸]¥¹‘½İÌ((€´´Y¥Ñ…±¥ä¥±¥ÁÁ½Ø€ñÙ¥Ñ…±¥™™å…¹‘•àµÑ•…´¹ÉÔø€QÕ”°€ÈÀ)Õ¸€ÈÀÈÌ€ÄÌèÔÜèÔÜ€¬ÀÌÀÀ()••Í•™Ì€ À¸ÌØ¸Ä¤Õ¹ÍÑ…‰±”ìÕÉ•¹äõµ•‘¥Õ´((€€¨¥à½Áå¥¹œ™¥±•Ì¥¹Ñ¼•á¥ÍÑ¥¹œ‘¥É•Ñ½É¥•Ì½¸]¥¹‘½İÌ((€´´Y¥Ñ…±¥ä¥±¥ÁÁ½Ø€ñÙ¥Ñ…±¥™™å…¹‘•àµÑ•…´¹ÉÔø€É¤°€Àä)Õ¸€ÈÀÈÌ€ÈÀèĞÌèĞĞ€¬ÀÌÀÀ()••Í•™Ì€ À¸ÌØ¸À¤Õ¹ÍÑ…‰±”ìÕÉ•¹äõµ•‘¥Õ´((€€¨áÁ•É¥µ•¹Ñ…°]¥¹‘½İÌÍÕÁÁ½ÉĞÕÍ¥¹œ]¥¹M@(€€¨áÁ•É¥µ•¹Ñ…°€‰±ÕÍÑ•Èµ½‘”ˆİ¥Ñ Íå¹¡É½¹¥é•…¡•Ì½¸‘¥™™•É•¹Ğ¡½ÍÑÌ((€´´Y¥Ñ…±¥ä¥±¥ÁÁ½Ø€ñÙ¥Ñ…±¥™™å…¹‘•àµÑ•…´¹ÉÔø€É¤°€Àä)Õ¸€ÈÀÈÌ€ÄÀèÌäèÈØ€¬ÀÌÀÀ()••Í•™Ì€ À¸ÌÔ¸Ğ¤Õ¹ÍÑ…‰±”ìÕÉ•¹äõµ•‘¥Õ´((€€¨¥à„É…Í ½¸Á…É…±±•°±½½­ÕÀ½˜Ñ¡”Í…µ”É•µ½Ù•™¥±”((€´´Y¥Ñ…±¥ä¥±¥ÁÁ½Ø€ñÙ¥Ñ…±¥™™å…¹‘•àµÑ•…´¹ÉÔø€]•°€ÈØÁÈ€ÈÀÈÌ€ÄÔèÈÔèÌà€¬ÀÌÀÀ()••Í•™Ì€ À¸ÌÔ¸Ì¤Õ¹ÍÑ…‰±”ìÕÉ•¹äõµ•‘¥Õ´((€€¨]½É¬…É½Õ¹Á…¹¥Œ½¸‘•É•˜Õ¹‘•É™±½Ü€¡Ñ¡”Í½ÕÉ”½˜Ñ¡”ÁÉ½‰±•´¥Ì¹½Ğ­¹½İ¸å•Ğ¤((€´´Y¥Ñ…±¥ä¥±¥ÁÁ½Ø€ñÙ¥Ñ…±¥™™å…¹‘•àµÑ•…´¹ÉÔø€QÕ”°€ÈÔÁÈ€ÈÀÈÌ€ÄÈèÀĞèÈà€¬ÀÌÀÀ()••Í•™Ì€ À¸ÌÔ¸È¤Õ¹ÍÑ…‰±”ìÕÉ•¹äõµ•‘¥Õ´((€€¨¥à„É…Í İ¥Ñ ™¥±•Ì½˜•á…Ñ±äµ…á¥µÕ´…±±½İ•Í¥é”(€€¨¥à„Á½Ñ•¹Ñ¥…°¥¹½‘”±•…¬‘Õ”Ñ¼µ¥ÍÍ¥¹œ‘•É•™•É•¹”½˜€‰‘•…ˆ‘•±•Ñ•¥¹½‘•Ì((€´´Y¥Ñ…±¥ä¥±¥ÁÁ½Ø€ñÙ¥Ñ…±¥™™å…¹‘•àµÑ•…´¹ÉÔø€QÕ”°€ÄàÁÈ€ÈÀÈÌ€ÄØèÀØèÈÔ€¬ÀÌÀÀ()••Í•™Ì€ À¸ÌÔ¸Ä¤Õ¹ÍÑ…‰±”ìÕÉ•¹äõµ•‘¥Õ´((€€¨1½œ½¹™±¥ÑÌİ¥Ñ ¥¹½‘”%(€€¨•¹äµ½‘¥™¥…Ñ¥½¹Ì½˜€‰¥¹Ù¥Í¥‰±”ˆ‘•±•Ñ•™¥±•Ì(€€¨¥àÉ…É”µ•µ½Éä…±±½…Ñ¥½¸‘•…‘±½­Ì(€€¨I•¹…µ”¥¹½‘”¹¥¹Í•ÉÑ	Õ™™•ÈÑ¼¥¹½‘”¹¥¹Í•ÉÑ=ÉÁÁ•¹‘	Õ™™•È(€€¨M•ĞÁ•É•¹ĞÑ¼€ÈÀ¥¹ÍÑ•…½˜€ÄÀÀ‰ä‘•™…Õ±Ğ(€€¨¥à„É…Í ½¸±½½­ÕÁÌÁ½ÍÍ¥‰±”¥¸Í½µ”…Í•Ì(€€¨¥àµä•µ…¥°((€´´Y¥Ñ…±¥ä¥±¥ÁÁ½Ø€ñÙ¥Ñ…±¥™™å…¹‘•àµÑ•…´¹ÉÔø€]•°€ÀÔÁÈ€ÈÀÈÌ€ÄÌèÌÀèÄà€¬ÀÌÀÀ()••Í•™Ì€ À¸ÌÔ¸À¤Õ¹ÍÑ…‰±”ìÕÉ•¹äõµ•‘¥Õ´((€€¨MÕÁÁ½ÉĞ™½É¥‰±äÉ•™É•Í¡¥¹œÑ¡”¥¹½‘”…¡”€¡Í•Ñ™…ÑÑÈ€µ¸€¹¥¹Ù…±¥‘…Ñ”™¥±”¤(€€¨I•µ½Ù”Á…¹¥Œ…ÁÑÕÉ¥¹œ(€€¨‘±¥¹Õàµ…É´ØĞ‰Õ¥±Ñ¼$((€´´Y¥Ñ…±¥ä¥±¥ÁÁ½Ø€ñÙ¥Ñ…±¥™™å…¹‘•àµÑ•…´¹ÉÔø€QÕ”°€Èà5…È€ÈÀÈÌ€ÄàèÀÈèĞØ€¬ÀÌÀÀ()••Í•™Ì€ À¸ÌĞ¸Ø¤Õ¹ÍÑ…‰±”ìÕÉ•¹äõµ•‘¥Õ´((€€¨É½ÀÉ½½ĞÁÉ¥Ù¥±••Ìİ¡•¸ÍÑ…ÉÑ•İ¥Ñ €´µÕ¥½È€´µÍ•ÑÕ¥€¡¹•Ü½ÁÑ¥½¸¤(€€¨¥àÉ…Í ½¸¡µ½½¡½İ¸½˜Ñ¡”É½½Ğ‘¥É•Ñ½Éä½˜µ½Õ¹ÑÁ½¥¹Ğ((€´´Y¥Ñ…±¥ä¥±¥ÁÁ½Ø€ñÙ¥Ñ…±¥™™å…¹‘•àµÑ•…´¹ÉÔø€É¤°€ÀÌ5…È€ÈÀÈÌ€ÈÌèÄÀèÈØ€¬ÀÌÀÀ()••Í•™Ì€ À¸ÌĞ¸Ô¤Õ¹ÍÑ…‰±”ìÕÉ•¹äõµ•‘¥Õ´((€€¨¥à„Á½ÍÍ¥‰±”É…”½¹‘¥Ñ¥½¸‰•Ñİ••¸É•¹…µ”€˜±¥ÍĞ‘Õ”Ñ¼Ñ¡”±…¬½˜±½­¥¹œ…É½Õ¹Í•…±¥È ¤(€€¨‘ÍÕÁÁ½ÉĞ™½È1¥¹Õà…É´ØĞ€¡ÕÍ”ÍåÍ…±°¹ÕÀÌ¥¹ÍÑ•…½˜ÕÀÈ¤((€´´Y¥Ñ…±¥ä¥±¥ÁÁ½Ø€ñÙ¥Ñ…±¥™™å…¹‘•àµÑ•…´¹ÉÔø€]•°€ÀÄ5…È€ÈÀÈÌ€ÈÌèĞÔèÈĞ€¬ÀÌÀÀ()••Í•™Ì€ À¸ÌĞ¸Ğ¤Õ¹ÍÑ…‰±”ìÕÉ•¹äõµ•‘¥Õ´((€€¨%µÁ±•µ•¹Ğ™…±±½…Ñ” ¤°•á•ÁĞÉ•…±±äÁ•ÉÙ•ÉÑ•11=}1}=11AM}I9…¹11=}1}%9MIQ}I9((€´´Y¥Ñ…±¥ä¥±¥ÁÁ½Ø€ñÙ¥Ñ…±¥™™å…¹‘•àµÑ•…´¹ÉÔø€5½¸°€ÈÌ)…¸€ÈÀÈÌ€ÈÀèÄĞèÌä€¬ÀÌÀÀ()••Í•™Ì€ À¸ÌĞ¸Ì¤Õ¹ÍÑ…‰±”ìÕÉ•¹äõµ•‘¥Õ´((€€¨½±±½İÕÀÑ¼€À¸ÌÈ¸ÀÌ™¥±”ÑÉÕ¹…Ñ¥½¸™¥à€´™¥à…¸…‘‘¥Ñ¥½¹…°…Í”½˜Ñ¡”Í…µ”‰Õœ((€´´Y¥Ñ…±¥ä¥±¥ÁÁ½Ø€ñÙ¥Ñ…±¥™™å…¹‘•àµÑ•…´¹ÉÔø€Q¡Ô°€ÄÈ)…¸€ÈÀÈÌ€ÄäèÀäèÈÌ€¬ÀÌÀÀ()••Í•™Ì€ À¸ÌĞ¸È¤Õ¹ÍÑ…‰±”ìÕÉ•¹äõµ•‘¥Õ´((€€¨%µÁ±•µ•¹ĞÑ¡”¹•Üå…¹‘•à½½½±”%4Í•ÉÙ¥”™±…Ù½È(€€¨I•‘Õ”µ•µ½ÉäÕÍ…”‘ÕÉ¥¹œ±½…‘¥¹œ½˜Ù•Éä±…É”‘¥É•Ñ½É¥•Ì(€€¨¥àAAI=ÉÕ¹Ñ¥µ”‘•‰Õ¥¹œÍÕÁÁ½ÉĞ(€€¨‘$½<ÍÑ…Ñ¥ÍÑ¥ÌÁÉ¥¹Ñ•È((€´´Y¥Ñ…±¥ä¥±¥ÁÁ½Ø€ñÙ¥Ñ…±¥™™å…¹‘•àµÑ•…´¹ÉÔø€5½¸°€Ää•Œ€ÈÀÈÈ€ÄäèÔØèÀÔ€¬ÀÌÀÀ()••Í•™Ì€ À¸ÌĞ¸Ä¤Õ¹ÍÑ…‰±”ìÕÉ•¹äõµ•‘¥Õ´((€€¨•Ñ•Ğ½¹™±¥Ğ‘ÕÉ¥¹œÉ•¹…µ”…¹‘½¸Ğ¡…¹œ½¸Ñ¡•´(€€¨¼¹½Ğ•á••%=Y}5`¥¸I•…‘¥±”¥˜Ñ¡•É”…É”Ñ½¼µ…¹ä‰Õ™™•ÉÌ((€´´Y¥Ñ…±¥ä¥±¥ÁÁ½Ø€ñÙ¥Ñ…±¥™™å…¹‘•àµÑ•…´¹ÉÔø€QÕ”°€ÈÈ9½Ø€ÈÀÈÈ€ÄÄèÔĞèÌÔ€¬ÀÌÀÀ()••Í•™Ì€ À¸ÌĞ¸À¤Õ¹ÍÑ…‰±”ìÕÉ•¹äõµ•‘¥Õ´((€€¨M±ÕÉÀ™¥±•Ì½¸±½½­ÕÀÑ¼ÍÁ••‘ÕÀ±½½­ÕÁÌ€¡ÉÍå¹Œ‰•¹•™¥ÑÌ±…É•±ä™É½´Ñ¡¥Ì¡…¹”¤((€´´Y¥Ñ…±¥ä¥±¥ÁÁ½Ø€ñÙ¥Ñ…±¥™™å…¹‘•àµÑ•…´¹ÉÔø€5½¸°€ÀÜ9½Ø€ÈÀÈÈ€ÄàèÌÄèÌä€¬ÀÌÀÀ()••Í•™Ì€ À¸ÌÌ¸Ä¤Õ¹ÍÑ…‰±”ìÕÉ•¹äõµ•‘¥Õ´((€€¨¥à„‰Õœİ¡•É”‘¥É•Ñ½Éä½‰©•ÑÌ½˜É•µ½Ù•‘¥É•Ñ½É¥•Ì½Õ±‰”±•™Ğ¥¸±½Õ¥¸€´µ¹¼µ‘¥Èµ½‰©•Ğµ½‘”(€€¨AÉ•Í•ÉÙ”‘¥É•Ñ½ÉäµÑ¥µ•ÌÍ•Ğİ¥Ñ ÕÑ¥µ•Ì ¤(€€¨I•Í•Ğ™¥±”µÑ¥µ”½¸İÉ¥Ñ”((€´´Y¥Ñ…±¥ä¥±¥ÁÁ½Ø€ñÙ¥Ñ…±¥™™å…¹‘•àµÑ•…´¹ÉÔø€5½¸°€ÀÜ9½Ø€ÈÀÈÈ€ÄàèÀĞèÀÀ€¬ÀÌÀÀ()••Í•™Ì€ À¸ÌÌ¸À¤Õ¹ÍÑ…‰±”ìÕÉ•¹äõµ•‘¥Õ´((€€¨=ÁÑ¥½¹…°Õ¥°¥°U9%`Á•Éµ¥ÍÍ¥½¹Ì°ÍÁ•¥…°™¥±”…¹µÑ¥µ”ÍÕÁÁ½ÉĞ((€´´Y¥Ñ…±¥ä¥±¥ÁÁ½Ø€ñÙ¥Ñ…±¥™™å…¹‘•àµÑ•…´¹ÉÔø€Q¡Ô°€ÀÌ9½Ø€ÈÀÈÈ€ÄÈèÄäèÀÈ€¬ÀÌÀÀ()••Í•™Ì€ À¸ÌÈ¸Ä¤Õ¹ÍÑ…‰±”ìÕÉ•¹äõµ•‘¥Õ´((€€¨¥àÁ½ÍÍ¥‰±”€‰Á…¹¥Œè‘•É•˜¥¹½‘”ááà‰äááà™É½´ááàˆ…™Ñ•È™½É•ÑÑ¥¹œ„É•¹…µ•‘¥É•Ñ½Éä(€€¨I•ÑÕÉ¸•ÉÉ½Èİ¡•¸™±ÕÍ µ‰•™½É”µÉ•…™…¥±Ì¥¹ÍÑ•…½˜€¡…ÁÑÕÉ•¤Á…¹¥­¥¹œ((€´´Y¥Ñ…±¥ä¥±¥ÁÁ½Ø€ñÙ¥Ñ…±¥™™å…¹‘•àµÑ•…´¹ÉÔø€]•°€ÀÈ9½Ø€ÈÀÈÈ€ÄÈèÀĞèĞÄ€¬ÀÌÀÀ()••Í•™Ì€ À¸ÌÈ¸À¤Õ¹ÍÑ…‰±”ìÕÉ•¹äõµ•‘¥Õ´((€€¨¥à„‰Õœİ¡•É”™¥±”ÑÉÕ¹…Ñ¥½¸Á…É…±±•°Ñ¼µÕ±Ñ¥Á…ÉĞÕÁ±½…‰É•…­ÌÑ¡”ÕÁ±½…((€´´Y¥Ñ…±¥ä¥±¥ÁÁ½Ø€ñÙ¥Ñ…±¥™™å…¹‘•àµÑ•…´¹ÉÔø€]•°€Ää=Ğ€ÈÀÈÈ€ÀÄèĞäèÔà€¬ÀÌÀÀ()••Í•™Ì€ À¸ÌÄ¸ä¤Õ¹ÍÑ…‰±”ìÕÉ•¹äõµ•‘¥Õ´((€€¨¥à™…¥±ÕÉ”Ñ¼É•¹…µ”„‘¥É•Ñ½Éäİ¥Ñ ™¥±”ÍÑ…ÉÑ¥¹œ½¸€œ œ((€´´Y¥Ñ…±¥ä¥±¥ÁÁ½Ø€ñÙ¥Ñ…±¥™™å…¹‘•àµÑ•…´¹ÉÔø€QÕ”°€ÄÄ=Ğ€ÈÀÈÈ€ÄÔèĞäèĞÀ€¬ÀÌÀÀ()••Í•™Ì€ À¸ÌÄ¸à¤Õ¹ÍÑ…‰±”ìÕÉ•¹äõµ•‘¥Õ´((€€¨¥à€‰Õ¹±½¬½˜Õ¹±½­•µÕÑ•àˆİ¡•¸ÕÍ¥¹œ‘¥Í¬…¡”((€´´Y¥Ñ…±¥ä¥±¥ÁÁ½Ø€ñÙ¥Ñ…±¥™™å…¹‘•àµÑ•…´¹ÉÔø€Q¡Ô°€ÀàM•À€ÈÀÈÈ€ÄÄèĞÔèÈÔ€¬ÀÌÀÀ()••Í•™Ì€ À¸ÌÄ¸Ü¤Õ¹ÍÑ…‰±”ìÕÉ•¹äõµ•‘¥Õ´((€€¨¥àÑ¡•½É•Ñ¥…°É…Í Á½ÍÍ¥‰±”İ¡•¸••Í•™ÌÍÑ…ÉÑÌ…¸ÕÁ±½…½˜„Á…ÉĞ½˜„‘•±•Ñ•™¥±”((€´´Y¥Ñ…±¥ä¥±¥ÁÁ½Ø€ñÙ¥Ñ…±¥™™å…¹‘•àµÑ•…´¹ÉÔø€É¤°€ÄÈÕœ€ÈÀÈÈ€ÄĞèÈÄèÔÌ€¬ÀÌÀÀ()••Í•™Ì€ À¸ÌÄ¸Ø¤Õ¹ÍÑ…‰±”ìÕÉ•¹äõµ•‘¥Õ´((€€¨I•µ½Ù”±¥ÍÑ¥¹œµ•Ñ¡½…ÕÑ½‘•Ñ•Ñ¥½¸‰äMÑ…ÉÑ™Ñ•È€¡¥ĞÑÕÉ¹Ì½ÕĞ¥Ğ‘½•Í¸Ğİ½É¬İ¥Ñ e…¹‘•àLÌ¤(€€¨I•µ½Ù”€øô•µÕ±…Ñ¥½¸‰ä€ÁàÄÁ±…É•ÍĞUQ´à½‘”Á½¥¹Ğ€¡Í¡½Õ±™¥à½µÁ…Ñ¥‰¥±¥Ñäİ¥Ñ ]…Í…‰¤¤((€´´Y¥Ñ…±¥ä¥±¥ÁÁ½Ø€ñÙ¥Ñ…±¥™™å…¹‘•àµÑ•…´¹ÉÔø€É¤°€ÀÔÕœ€ÈÀÈÈ€ÄĞèÈØèÀà€¬ÀÌÀÀ()••Í•™Ì€ À¸ÌÄ¸Ô¤Õ¹ÍÑ…‰±”ìÕÉ•¹äõµ•‘¥Õ´((€€¨I•‘Õ”±½‰…°L±½¬½¹Ñ•¹Ñ¥½¸…¹™¥àÍ½µ”Ñ¡•½É•Ñ¥…°‘•…‘±½­Ì((€´´Y¥Ñ…±¥ä¥±¥ÁÁ½Ø€ñÙ¥Ñ…±¥™™å…¹‘•àµÑ•…´¹ÉÔø€]•°€ÀÌÕœ€ÈÀÈÈ€ÄàèÄÈèÔÄ€¬ÀÌÀÀ()••Í•™Ì€ À¸ÌÄ¸Ğ¤Õ¹ÍÑ…‰±”ìÕÉ•¹äõµ•‘¥Õ´((€€¨‘UM	…Ñ¡½É•Ğ½Á•É…Ñ¥½¸ÍÕÁÁ½ÉĞ€´Í¡½Õ±™¥àµ•µ½Éä±•…­Ì½¸Í½µ”­•É¹•±Ì((€´´Y¥Ñ…±¥ä¥±¥ÁÁ½Ø€ñÙ¥Ñ…±¥™™å…¹‘•àµÑ•…´¹ÉÔø€MÕ¸°€ÀÌ)Õ°€ÈÀÈÈ€ÀÄèÔÈèĞÄ€¬ÀÌÀÀ()••Í•™Ì€ À¸ÌÄ¸Ì¤Õ¹ÍÑ…‰±”ìÕÉ•¹äõµ•‘¥Õ´((€€¨¥à„‰Õœİ¡•É”ÕÍ•Èµ•Ñ…‘…Ñ„Ù…±Õ•Ìİ•É”…±İ…åÌ±½İ•É…Í•((€´´Y¥Ñ…±¥ä¥±¥ÁÁ½Ø€ñÙ¥Ñ…±¥™™å…¹‘•àµÑ•…´¹ÉÔø€QÕ”°€ÈĞ5…ä€ÈÀÈÈ€ÄÌèÔÌèÄÔ€¬ÀÌÀÀ()••Í•™Ì€ À¸ÌÄ¸Ä¤Õ¹ÍÑ…‰±”ìÕÉ•¹äõµ•‘¥Õ´((€€¨¥à„Ù•ÉäÉ…É”ÁÉ½‰±•´İ¥Ñ µÕ±Ñ¥Á…ÉĞÕÁ±½…•áÁ¥É”İ¡•¸€´µµÕ±Ñ¥Á…ÉĞµ…”¥ÌÍ•ĞÑ¼€À((€´´Y¥Ñ…±¥ä¥±¥ÁÁ½Ø€ñÙ¥Ñ…±¥™™å…¹‘•àµÑ•…´¹ÉÔø€]•°€Äà5…ä€ÈÀÈÈ€ÄÌèÀĞèÈĞ€¬ÀÌÀÀ()••Í•™Ì€ À¸ÌÄ¸À¤Õ¹ÍÑ…‰±”ìÕÉ•¹äõµ•‘¥Õ´((€€¨¥à•áĞµØÄ€¼ØÈ€¼ØÄ±¥ÍÑ¥¹œµ•Ñ¡½‘•Ñ•Ñ¥½¸((€´´Y¥Ñ…±¥ä¥±¥ÁÁ½Ø€ñÙ¥Ñ…±¥™™å…¹‘•àµÑ•…´¹ÉÔø€QÕ”°€ÄÜ5…ä€ÈÀÈÈ€ÈÌèÌÜèÌà€¬ÀÌÀÀ()••Í•™Ì€ À¸ÌÀ¸ä¤Õ¹ÍÑ…‰±”ìÕÉ•¹äõµ•‘¥Õ´((€€¨¥à„É…É”µ•µ½Éä±•…¬…ÕÍ•‰ä¥¹½ÉÉ•Ğ1IT±¥ÍĞÑÉ…­¥¹œ(€€¨¥àµ½Õ¹Ñ¥¹œÁÕ‰±¥Œ‰Õ­•ÑÌİ¥Ñ …¸…•ÍÌ­•ä™É½´•¹Ù¥É½¹µ•¹ĞÙ…É¥…‰±•Ì((€´´Y¥Ñ…±¥ä¥±¥ÁÁ½Ø€ñÙ¥Ñ…±¥™™å…¹‘•àµÑ•…´¹ÉÔø€QÕ”°€ÄÔ5…È€ÈÀÈÈ€ÈÈèÌäèÌØ€¬ÀÌÀÀ()••Í•™Ì€ À¸ÌÀ¸à¤Õ¹ÍÑ…‰±”ìÕÉ•¹äõµ•‘¥Õ´((€€¨I•ÑÕÉ¸	%Ñ¼…±±•ÉÌİ¡•¸ÑÉå¥¹œÑ¼É•…½ÈİÉ¥Ñ”‰•å½¹Ñ¡”(€€€µ…á¥µÕ´™¥±”Í¥é”¥¹ÍÑ•…½˜Á…¹¥­¥¹œ(€€¨]…É¸…‰½ÕĞ½¹™±¥ÑÌ½¹±äİ¡•¸Ñ¡•É”…É”…ÑÕ…°¡…¹•Ì((€´´Y¥Ñ…±¥ä¥±¥ÁÁ½Ø€ñÙ¥Ñ…±¥™™å…¹‘•àµÑ•…´¹ÉÔø€]•°€ÄØ•ˆ€ÈÀÈÈ€ÀÀèĞÈèÌÄ€¬ÀÌÀÀ()••Í•™Ì€ À¸ÌÀ¸Ü¤ÍÑ…‰±”ìÕÉ•¹äõµ•‘¥Õ´((€€¨¥à„É…”½¹‘¥Ñ¥½¸Á½ÍÍ¥‰±”½¸Á…É…±±•°™¥ÉÍĞÉ•…‘Ì™É½´‘¥™™•É•¹ĞÑ¡É•…‘Ì(€€€½¸Ñ¡”Í…µ”™¥±”‘•ÍÉ¥ÁÑ½È((€´´Y¥Ñ…±¥ä¥±¥ÁÁ½Ø€ñÙ¥Ñ…±¥™™å…¹‘•àµÑ•…´¹ÉÔø€]•°€Àä•ˆ€ÈÀÈÈ€ÈÈèÈäèÄĞ€¬ÀÌÀÀ()••Í•™Ì€ À¸ÌÀ¸Ø¤ÍÑ…‰±”ìÕÉ•¹äõµ•‘¥Õ´((€€¨¥à„‰Õœİ¡•É”É•¹…µ•Ì½˜½Á•¸°‰ÕĞÕ¹µ½‘¥™¥•°™¥±•Ìİ•É”¹½Ğ™±ÕÍ¡•Ñ¼LÌ(€€¨%µÁÉ½Ù”Á…É…±±•°±¥¹•…ÈÉ•…ÍÁ••‰äÁÉ•Ù•¹Ñ¥¹œ•Ù¥Ñ¥½¸½˜É••¹Ñ±ä±½…‘•‘…Ñ„((€´´Y¥Ñ…±¥ä¥±¥ÁÁ½Ø€ñÙ¥Ñ…±¥™™å…¹‘•àµÑ•…´¹ÉÔø€5½¸°€ÀÜ•ˆ€ÈÀÈÈ€ÄØèÈÌèÈÀ€¬ÀÌÀÀ()••Í•™Ì€ À¸ÌÀ¸Ô¤ÍÑ…‰±”ìÕÉ•¹äõµ•‘¥Õ´((€€¨¥àµÕ±Ñ¥Á…ÉĞµ½Áä™…¥±ÕÉ•Ì½¸™¥±•Ìİ¥Ñ ¹…µ•Ìİ¡¥ É•ÅÕ¥É”UI0µ•¹½‘¥¹œ((€´´Y¥Ñ…±¥ä¥±¥ÁÁ½Ø€ñÙ¥Ñ…±¥™™å…¹‘•àµÑ•…´¹ÉÔø€]•°€ÄÈ)…¸€ÈÀÈÈ€ÄÜèÄĞèÄÔ€¬ÀÌÀÀ()••Í•™Ì€ À¸ÌÀ¸Ğ¤ÍÑ…‰±”ìÕÉ•¹äõ¡¥ ((€€¨¥àÁ½ÍÍ¥‰±”$½<•ÉÉ½ÉÌ½¸Á…É…±±•°É•…€˜İÉ¥Ñ”½˜„¹•İ±äÉ•…Ñ•™¥±”((€´´Y¥Ñ…±¥ä¥±¥ÁÁ½Ø€ñÙ¥Ñ…±¥™™å…¹‘•àµÑ•…´¹ÉÔø€5½¸°€ÀØ•Œ€ÈÀÈÄ€ÄÔèÄÀèĞÄ€¬ÀÌÀÀ()••Í•™Ì€ À¸ÌÀ¸Ì¤ÍÑ…‰±”ìÕÉ•¹äõµ•‘¥Õ´((€€¨¼¹½ĞÉ…Í İ¥Ñ Á…¹¥Œİ¡•¸•á••‘¥¹œµ•µ½Éä±¥µ¥Ğ°©ÕÍĞÉ•ÑÕÉ¸9=54(€€¨µ‰•Ñ•ÍĞÍ¡•±°ÍÉ¥ÁÑÌ¥¸Ñ•ÍĞ‰¥¹…Éä((€´´Y¥Ñ…±¥ä¥±¥ÁÁ½Ø€ñÙ¥Ñ…±¥™™å…¹‘•àµÑ•…´¹ÉÔø€QÕ”°€ÈÌ9½Ø€ÈÀÈÄ€ÄÜèĞÀèÄà€¬ÀÌÀÀ()••Í•™Ì€ À¸ÌÀ¸È¤ÍÑ…‰±”ìÕÉ•¹äõµ•‘¥Õ´((€€¨¥àÑ•ÍĞ±•…¹ÕÀèÉ•ÑÉä‘•±•Ñ¥¹œ‰Õ­•ÑÌ°Õ¹µ½Õ¹Ğ…±°µ½Õ¹ÑÁ½¥¹ÑÌ((€´´Y¥Ñ…±¥ä¥±¥ÁÁ½Ø€ñÙ¥Ñ…±¥™™å…¹‘•àµÑ•…´¹ÉÔø€]•°€ÄÜ9½Ø€ÈÀÈÄ€ÄÜèÈÄèÄä€¬ÀÌÀÀ()••Í•™Ì€ À¸ÌÀ¸Ä¤ÍÑ…‰±”ìÕÉ•¹äõµ•‘¥Õ´((€€¨I•‘Õ”µ•µ½ÉäÕÍ…”‰äÑÉ¥•É¥¹œµ½É”½™Ñ•¸(€€¨UÍ”Q5A%H¥¸Ñ•ÍÑÌ((€´´Y¥Ñ…±¥ä¥±¥ÁÁ½Ø€ñÙ¥Ñ…±¥™™å…¹‘•àµÑ•…´¹ÉÔø€]•°€ÄÜ9½Ø€ÈÀÈÄ€ÀÀèÔÜèÌÌ€¬ÀÌÀÀ()••Í•™Ì€ À¸ÌÀ¸À¤ÍÑ…‰±”ìÕÉ•¹äõµ•‘¥Õ´((€€¨±±½ÜÑ¼½¹™¥ÕÉ”Á…ÉĞÍ¥é•Ì…¹µÕ±Ñ¥Á…ÉĞ½ÁäÁ…ÉĞÍ¥é”(€€¨¥à½¹”µ½É”Ñ¡•½É•Ñ¥…±±äÁ½ÍÍ¥‰±”É…”½¹‘¥Ñ¥½¸(€€¨	Õ¥±Ñ•ÍÑÌ¥¸$((€´´Y¥Ñ…±¥ä¥±¥ÁÁ½Ø€ñÙ¥Ñ…±¥™™å…¹‘•àµÑ•…´¹ÉÔø€]•°€ÄÀ9½Ø€ÈÀÈÄ€ÄäèÀÔèÄØ€¬ÀÌÀÀ()••Í•™Ì€ À¸Èä¸ä¤Õ¹ÍÑ…‰±”ìÕÉ•¹äõµ•‘¥Õ´((€€¨¥àÑ¡”Í…µ”É…”¥¸½¹”µ½É”Á±…”€¡¥¸±½½­ÕÁÌ°½¹ÑÉ…ÉäÑ¼±¥ÍÑ¥¹Ì¤((€´´Y¥Ñ…±¥ä¥±¥ÁÁ½Ø€ñÙ¥Ñ…±¥™™å…¹‘•àµÑ•…´¹ÉÔø€]•°€ÈÜ=Ğ€ÈÀÈÄ€ÄØèÄÌèĞĞ€¬ÀÌÀÀ()••Í•™Ì€ À¸Èä¸à¤Õ¹ÍÑ…‰±”ìÕÉ•¹äõµ•‘¥Õ´((€€¨¥à„€¡É…Ñ¡•ÈÉ…É”¤É…”‰•Ñİ••¸µÕ±Ñ¥Á…ÉĞÕÁ±½…½µÁ±•Ñ¥½¸…¹±¥ÍÑ¥¹œ(€€€€¡Í¥µ¥±…ÈÑ¼Ñ¡”‘•±•Ñ”½±¥ÍĞÉ…”¤((€´´Y¥Ñ…±¥ä¥±¥ÁÁ½Ø€ñÙ¥Ñ…±¥™™å…¹‘•àµÑ•…´¹ÉÔø€É¤°€ÈÈ=Ğ€ÈÀÈÄ€ÄàèÈÀèÄÔ€¬ÀÌÀÀ()••Í•™Ì€ À¸Èä¸Ü¤ÍÑ…‰±”ìÕÉ•¹äõµ•‘¥Õ´((€€¨¥à„É…”‰•Ñİ••¸½µÁ±•Ñ”µÕ±Ñ¥Á…ÉĞÕÁ±½…€˜‘•±•Ñ”™¥±”…Ñ¥½¹Ì((€´´Y¥Ñ…±¥ä¥±¥ÁÁ½Ø€ñÙ¥Ñ…±¥™™å…¹‘•àµÑ•…´¹ÉÔø€Q¡Ô°€ÈÄ=Ğ€ÈÀÈÄ€ÄĞèÔÄèÈĞ€¬ÀÌÀÀ()••Í•™Ì€ À¸Èä¸Ø¤ÍÑ…‰±”ìÕÉ•¹äõµ•‘¥Õ´((€€¨¥àÁ…ÉĞÁ¥­¥¹œ™½È™±ÕÍ ((€´´Y¥Ñ…±¥ä¥±¥ÁÁ½Ø€ñÙ¥Ñ…±¥™™å…¹‘•àµÑ•…´¹ÉÔø€]•°€ÈÀ=Ğ€ÈÀÈÄ€ÈÄèĞäèÀà€¬ÀÌÀÀ()••Í•™Ì€ À¸Èä¸Ô¤ÍÑ…‰±”ìÕÉ•¹äõµ•‘¥Õ´((€€¨¼¹½Ğ…¥‘•¹Ñ…±±ä™½É•Ğ™¥±•Ì…™Ñ•È™±ÕÍ¡¥¹œµ­‘¥È°É•¹…µ”…¹µ•Ñ…‘…Ñ„¡…¹”((€´´Y¥Ñ…±¥ä¥±¥ÁÁ½Ø€ñÙ¥Ñ…±¥™™å…¹‘•àµÑ•…´¹ÉÔø€]•°€ÈÀ=Ğ€ÈÀÈÄ€ÄäèÔÔèÀÔ€¬ÀÌÀÀ()••Í•™Ì€ À¸Èä¸Ğ¤ÍÑ…‰±”ìÕÉ•¹äõµ•‘¥Õ´((€€¨½¸Ğ¡…¹œ½¸É•Á•…Ñ•™±ÕÍ ½˜Ñ¡”Í…µ”Á…ÉĞ…™Ñ•È¥Ğ¥Ì•Ù¥Ñ•™É½´µ•µ½Éä(€€¨QÉäÑ¼¹½Ğ™±ÕÍ Á…ÉÑÌİ¥Ñ •µÁÑäÉ…¹•ÌÕ¹Ñ¥°İ”É”É•…±±ä™½É•Ñ¼‘¼¥Ğ((€´´Y¥Ñ…±¥ä¥±¥ÁÁ½Ø€ñÙ¥Ñ…±¥™™å…¹‘•àµÑ•…´¹ÉÔø€]•°€ÈÀ=Ğ€ÈÀÈÄ€ÄàèÈÀèĞà€¬ÀÌÀÀ()••Í•™Ì€ À¸Èä¸Ì¤ÍÑ…‰±”ìÕÉ•¹äõµ•‘¥Õ´((€€¨¥à™¥±•Ì‘¥Í…ÁÁ•…É¥¹œ™É½´±¥ÍÑ¥¹Ì™½ÈÍ¡½ÉĞÑ¥µ”…™Ñ•ÈÕÁ±½…((€´´Y¥Ñ…±¥ä¥±¥ÁÁ½Ø€ñÙ¥Ñ…±¥™™å…¹‘•àµÑ•…´¹ÉÔø€5½¸°€Äà=Ğ€ÈÀÈÄ€ÄÔèÌĞèÈä€¬ÀÌÀÀ()••Í•™Ì€ À¸Èä¸È¤ÍÑ…‰±”ìÕÉ•¹äõµ•‘¥Õ´((€€¨%µÁ±•µ•¹Ğ‰•ÍĞµ•™™½ÉĞÍÕÁÁ½ÉĞ™½È‘¥É•Ñ½ÉäÍ••­Ì°É•ÅÕ¥É•™½È¹™Ìµ­•É¹•°µÍ•ÉÙ•È((€´´Y¥Ñ…±¥ä¥±¥ÁÁ½Ø€ñÙ¥Ñ…±¥™™å…¹‘•àµÑ•…´¹ÉÔø€É¤°€ÄÔ=Ğ€ÈÀÈÄ€ÄØèÔØèÈĞ€¬ÀÌÀÀ()••Í•™Ì€ À¸Èä¸Ä¤ÍÑ…‰±”ìÕÉ•¹äõµ•‘¥Õ´((€€¨%µÁ±•µ•¹Ğ5­9½‘•=ÀÑ¼™¥à™¥±”É•…Ñ¥½¸Ù¥„Ñ¡”¹™Ìµ­•É¹•°µÍ•ÉÙ•È((€´´Y¥Ñ…±¥ä¥±¥ÁÁ½Ø€ñÙ¥Ñ…±¥™™å…¹‘•àµÑ•…´¹ÉÔø€QÕ”°€ÄÈ=Ğ€ÈÀÈÄ€ÄĞèÔäèÈÌ€¬ÀÌÀÀ()••Í•™Ì€ À¸Èä¸À¤ÍÑ…‰±”ìÕÉ•¹äõµ•‘¥Õ´((€€¨¥àÍ•Ù•É…°‰ÕÌİ¡¥ İ•É”±•…‘¥¹œÑ¼É…Í¡•ÌÕ¹‘•ÈÁ…É…±±•°İ½É­±½…‘Ì((€´´Y¥Ñ…±¥ä¥±¥ÁÁ½Ø€ñÙ¥Ñ…±¥™™å…¹‘•àµÑ•…´¹ÉÔø€5½¸°€ÄÄ=Ğ€ÈÀÈÄ€ÈÀèÀĞèÈÌ€¬ÀÌÀÀ()••Í•™Ì€ À¸Èà¸Ü¤ÍÑ…‰±”ìÕÉ•¹äõµ•‘¥Õ´((€€¨¥àµÕ±Ñ¥Á…ÉĞ™¥±”á…ÑÑÉÌ¹½Ğ‰•¥¹œÍ…Ù•Ñ¼LÌ(€€¨¥à½µÁ…Ñ¥‰¥±¥Ñäİ¥Ñ m±½Í•µÍ½ÕÉ”€è´¡tµ…™ÕÍ”€Ğ¹à((€´´Y¥Ñ…±¥ä¥±¥ÁÁ½Ø€ñÙ¥Ñ…±¥™™å…¹‘•àµÑ•…´¹ÉÔø€É¤°€Àà=Ğ€ÈÀÈÄ€ÄØèÈÜèÌØ€¬ÀÌÀÀ()••Í•™Ì€ À¸Èà¸Ø¤ÍÑ…‰±”ìÕÉ•¹äõµ•‘¥Õ´((€€¨¼¹½ĞÉ•µ½Ù”Õ¹µ½‘¥™¥•¥¹½‘•Ì™É½´…¡”©ÕÍĞÑ¼É”µ…‘Ñ¡•´‰…¬İ¡•¸±¥ÍÑ¥¹œ((€´´Y¥Ñ…±¥ä¥±¥ÁÁ½Ø€ñÙ¥Ñ…±¥™™å…¹‘•àµÑ•…´¹ÉÔø€QÕ”°€ÀÔ=Ğ€ÈÀÈÄ€ÄÔèÄàèÔÀ€¬ÀÌÀÀ()••Í•™Ì€ À¸Èà¸Ô¤ÍÑ…‰±”ìÕÉ•¹äõµ•‘¥Õ´((€€¨¥àÁ½ÍÍ¥‰±”‘ÕÁ±¥…Ñ•Ì¥¸±¥ÍÑ¥¹œİ¡•¸…¡”¥¹Ù…±¥‘…Ñ¥½¸¡…ÁÁ•¹Ì‘ÕÉ¥¹œ±¥ÍÑ¥¹œ(€€¨¥àÁ½ÍÍ¥‰±”¥¹½ÉÉ•Ğ¥¹½‘”ÍÑ…Ñ”İ¡•¸‰½Ñ „™¥±”…¹„‘¥É•Ñ½Éäİ¥Ñ Ñ¡”Í…µ”¹…µ”•á¥ÍĞ¥¸LÌ((€´´Y¥Ñ…±¥ä¥±¥ÁÁ½Ø€ñÙ¥Ñ…±¥™™å…¹‘•àµÑ•…´¹ÉÔø€QÕ”°€ÀÔ=Ğ€ÈÀÈÄ€ÄÄèĞÌèÈÔ€¬ÀÌÀÀ()••Í•™Ì€ À¸Èà¸Ğ¤ÍÑ…‰±”ìÕÉ•¹äõµ•‘¥Õ´((€€¨½¸Ğ¥¹½É”ø¼¹…İÌ½É•‘•¹Ñ¥…±Ìİ¡•¸€´µÍ¡…É•µ½¹™¥œ¥Ì•µÁÑä((€´´Y¥Ñ…±¥ä¥±¥ÁÁ½Ø€ñÙ¥Ñ…±¥™™å…¹‘•àµÑ•…´¹ÉÔø€QÕ”°€ÈàM•À€ÈÀÈÄ€ÄÜèÀÔèĞØ€¬ÀÌÀÀ()••Í•™Ì€ À¸Èà¸Ì¤ÍÑ…‰±”ìÕÉ•¹äõµ•‘¥Õ´((€€¨‘…¸½ÁÑ¥½¸Ñ¼½Ù•ÉÉ¥‘”…İÌµÍ‘¬Í¡…É•½¹™¥œÁ…Ñ ((€´´Y¥Ñ…±¥ä¥±¥ÁÁ½Ø€ñÙ¥Ñ…±¥™™å…¹‘•àµÑ•…´¹ÉÔø€5½¸°€ÈÜM•À€ÈÀÈÄ€ÄÜèĞÌèÌÀ€¬ÀÌÀÀ()••Í•™Ì€ À¸Èà¸È¤ÍÑ…‰±”ìÕÉ•¹äõµ•‘¥Õ´((€€¨¥à„É…É”±¥ÍĞ½‘•±•Ñ”É…”°™¥à¥¹½ÉÉ•ĞÁ…ÉÑ¥…°™±ÕÍ¡¥¹œ½˜±…É”É•¹…µ•½‰©•ÑÌ((€´´Y¥Ñ…±¥ä¥±¥ÁÁ½Ø€ñÙ¥Ñ…±¥™™å…¹‘•àµÑ•…´¹ÉÔø€]•°€ÈÈM•À€ÈÀÈÄ€ÄØèÄØèĞĞ€¬ÀÌÀÀ()••Í•™Ì€ À¸Èà¸Ä¤ÍÑ…‰±”ìÕÉ•¹äõµ•‘¥Õ´((€€¨¥à„‰Õœİ¡•É”€¡±ÌÍÕ‰‘¥Èì±Ìì±ÌÍÕ‰‘¥È¤½Õ±±•…Ñ¼•µÁÑä±¥ÍÑ¥¹œ½˜Ñ¡”ÍÕ‰‘¥È((€´´Y¥Ñ…±¥ä¥±¥ÁÁ½Ø€ñÙ¥Ñ…±¥™™å…¹‘•àµÑ•…´¹ÉÔø€QÕ”°€ÈÄM•À€ÈÀÈÄ€ÄØèĞÌèÌÄ€¬ÀÌÀÀ()••Í•™Ì€ À¸Èà¸À¤ÍÑ…‰±”ìÕÉ•¹äõµ•‘¥Õ´((€€¨••Í•L¥Ì¹½ÜÍÑ…‰±”•¹½Õ Ñ¼Á…ÍÌµ½ÍĞ…ÁÁ±¥…‰±”Ñ•ÍÑÌ™É½´á™ÍÑ•ÍÑÌ((€´´Y¥Ñ…±¥ä¥±¥ÁÁ½Ø€ñÙ¥Ñ…±¥™™å…¹‘•àµÑ•…´¹ÉÔø€É¤°€ÄÜM•À€ÈÀÈÄ€ÄÌèÔÔèĞà€¬ÀÌÀÀ()••Í•™Ì€ À¸ÈÜ¸Ä¤ÍÑ…‰±”ìÕÉ•¹äõµ•‘¥Õ´((€€¨¥à¥¹½‘”µ•Ñ…‘…Ñ„•ÑÑ¥¹œ‰É½­•¸¥¸€À¸ÈÜ¸À((€´´Y¥Ñ…±¥ä¥±¥ÁÁ½Ø€ñÙ¥Ñ…±¥™™å…¹‘•àµÑ•…´¹ÉÔø€QÕ”°€ÄĞM•À€ÈÀÈÄ€ÄÔèÔÜèÌĞ€¬ÀÌÀÀ()••Í•™Ì€ À¸ÈÜ¸À¤ÍÑ…‰±”ìÕÉ•¹äõµ•‘¥Õ´((€€¨¥à‰ÕÌ™½Õ¹‰äLÍÑÉ•ÍÌµÑ•ÍÑÌ€¡á™ÍÑ•ÍÑÌè•¹•É¥Œ¼ÀÄÄ°•¹•É¥Œ¼ÀÄÌ¤¸5½É”½µ¥¹œ€è´¤((€´´Y¥Ñ…±¥ä¥±¥ÁÁ½Ø€ñÙ¥Ñ…±¥™™å…¹‘•àµÑ•…´¹ÉÔø€QÕ”°€ÄĞM•À€ÈÀÈÄ€ÄÌèÌäèÔÌ€¬ÀÌÀÀ()••Í•™Ì€ À¸ÈØ¸È¤ÍÑ…‰±”ìÕÉ•¹äõµ•‘¥Õ´((€€¨M±¥¡Ñ±äÍÁ••ÕÀÑ¡”‰•¥¹¹¥¹œ½˜ÕÁ±½…½˜™¥±•ÌÍ¥é•‰•Ñİ••¸€Ô5…¹€Ä(€€¨±±½ÜÑ¼±½œÑ¼ÍÑ‘•ÉÈ¥¸‘…•µ½¸µ½‘”((€´´Y¥Ñ…±¥ä¥±¥ÁÁ½Ø€ñÙ¥Ñ…±¥™™å…¹‘•àµÑ•…´¹ÉÔø€QÕ”°€ÀÜM•À€ÈÀÈÄ€ÄÌèÌàèÈĞ€¬ÀÌÀÀ()••Í•™Ì€ À¸ÈØ¸Ä¤ÍÑ…‰±”ìÕÉ•¹äõµ•‘¥Õ´((€€¨¥àÍ•Ù•É…°‰Õ™™•Èµµ…¹…•µ•¹Ğ‰ÕÌİ¡¥ ½Õ±±•…Ñ¼É…Í¡•Ì½È½ÉÉÕÁÑ•É•…‘Ì((€´´Y¥Ñ…±¥ä¥±¥ÁÁ½Ø€ñÙ¥Ñ…±¥™™å…¹‘•àµÑ•…´¹ÉÔø€É¤°€ÀÌM•À€ÈÀÈÄ€ÈÌèĞàèÌĞ€¬ÀÌÀÀ()••Í•™Ì€ À¸ÈØ¸À¤ÍÑ…‰±”ìÕÉ•¹äõµ•‘¥Õ´((€€¨%µÁ±•µ•¹Ğ‰…Í¥Œ½¸µ‘¥Í¬…¡”(€€¨%µÁÉ½Ù”±¥¹•…ÈÉ•……¹İÉ¥Ñ”Á•É™½Éµ…¹”‰ä…Ù½¥‘¥¹œ•áÑÉ„µ•µ½Éä½Áå¥¹œ((€´´Y¥Ñ…±¥ä¥±¥ÁÁ½Ø€ñÙ¥Ñ…±¥™™å…¹‘•àµÑ•…´¹ÉÔø€]•°€ÀÄM•À€ÈÀÈÄ€ÄàèÔÈèÄĞ€¬ÀÌÀÀ()••Í•™Ì€ À¸ÈÔ¸Ì¤ÍÑ…‰±”ìÕÉ•¹äõµ•‘¥Õ´((€€¨M­¥À½‰©•ÑÌİ¥Ñ ¥¹Ù…±¥¹…µ•ÌÑ¼¹½ĞÉ…Í ½¸Ñ¡•´(€€¨¥àÑİ¼Á½ÍÍ¥‰±”É…Í¡•Ì½¸Á…É…±±•°İÉ¥Ñ”((€´´Y¥Ñ…±¥ä¥±¥ÁÁ½Ø€ñÙ¥Ñ…±¥™™å…¹‘•àµÑ•…´¹ÉÔø€QÕ”°€ÌÄÕœ€ÈÀÈÄ€ÈÄèÈĞèÄä€¬ÀÌÀÀ()••Í•™Ì€ À¸ÈÔ¸È¤ÍÑ…‰±”ìÕÉ•¹äõµ•‘¥Õ´((€€¨¥à„Á½ÍÍ¥‰±”¡…¹œ((€´´Y¥Ñ…±¥ä¥±¥ÁÁ½Ø€ñÙ¥Ñ…±¥™™å…¹‘•àµÑ•…´¹ÉÔø€]•°€ÄàÕœ€ÈÀÈÄ€ÄÔèĞÔèÄÜ€¬ÀÌÀÀ()••Í•™Ì€ À¸ÈÔ¸Ä¤ÍÑ…‰±”ìÕÉ•¹äõµ•‘¥Õ´((€€¨½¸ĞÉ•µ½Ù”…±°5AUÌ½¸ÍÑ…ÉĞ((€´´Y¥Ñ…±¥ä¥±¥ÁÁ½Ø€ñÙ¥Ñ…±¥™™å…¹‘•àµÑ•…´¹ÉÔø€QÕ”°€ÄÜÕœ€ÈÀÈÄ€ÈÌèÌÌèÌĞ€¬ÀÌÀÀ()••Í•™Ì€ À¸ÈÔ¸À¤ÍÑ…‰±”ìÕÉ•¹äõµ•‘¥Õ´((€€¨%µÁÉ½Ù”±¥¹•…ÈÉ•……¹İÉ¥Ñ”(€€¨M•Ğ‘•™…Õ±Ğµ•µ½Éä±¥µ¥ĞÑ¼€ÄÀÀÀ5(€€¨¥àÍ½µ”‰ÕÌ((€´´Y¥Ñ…±¥ä¥±¥ÁÁ½Ø€ñÙ¥Ñ…±¥™™å…¹‘•àµÑ•…´¹ÉÔø€QÕ”°€ÄÜÕœ€ÈÀÈÄ€ÄÔèÌĞèĞØ€¬ÀÌÀÀ()••Í•™Ì€ À¸ÈĞ¸Ì¤ÍÑ…‰±”ìÕÉ•¹äõµ•‘¥Õ´((€€¨M¥±•¹Ñ±ä¥¹½É”™½É‰¥‘‘•¸á…ÑÑÈ½Á•É…Ñ¥½¹Ì((€´´Y¥Ñ…±¥ä¥±¥ÁÁ½Ø€ñÙ¥Ñ…±¥™™å…¹‘•àµÑ•…´¹ÉÔø€5½¸°€ÀäÕœ€ÈÀÈÄ€ÄÌèÄØèÔÈ€¬ÀÌÀÀ()••Í•™Ì€ À¸ÈĞ¸È¤ÍÑ…‰±”ìÕÉ•¹äõµ•‘¥Õ´((€€¨¥à½¹™¥ÕÉ…Ñ¥½¸Á…ÉÍ¥¹œ((€´´Y¥Ñ…±¥ä¥±¥ÁÁ½Ø€ñÙ¥Ñ…±¥™™å…¹‘•àµÑ•…´¹ÉÔø€É¤°€ÀØÕœ€ÈÀÈÄ€ÈÄèÈÌèÔØ€¬ÀÌÀÀ()••Í•™Ì€ À¸ÈĞ¸Ä¤ÍÑ…‰±”ìÕÉ•¹äõµ•‘¥Õ´((€€¨%¹¥Ñ¥…°É•±•…Í”((€´´Y¥Ñ…±¥ä¥±¥ÁÁ½Ø€ñÙ¥Ñ…±¥™™å…¹‘•àµÑ•…´¹ÉÔø€]•°€ÀĞÕœ€ÈÀÈÄ€ÄÈèĞÌèÀÀ€¬ÀÌÀÀ(
+		s3Log.Infof("Lazy IAM refresh failed: %v", err)
+	}
+}
+
+func (s *S3Backend) setIAMSigner(handlers *request.Handlers) {
+	handlers.Sign.Clear()
+	handlers.Sign.PushBack(func(req *request.Request) {
+		if req.Config.Credentials == credentials.AnonymousCredentials {
+			return
+		}
+		s.ensureFreshIAMToken()
+		req.HTTPRequest.Header.Set(s.config.IAMHeader, s.iamToken.Load().(string))
+	})
+	handlers.Sign.PushBackNamed(corehandlers.BuildContentLengthHandler)
+}
+
+func (s *S3Backend) Bucket() string {
+	return s.bucket
+}
+
+func (s *S3Backend) Capabilities() *Capabilities {
+	return &s.cap
+}
+
+func addAcceptEncoding(req *request.Request) {
+	if req.HTTPRequest.Method == "GET" {
+		// we need "Accept-Encoding: identity" so that objects
+		// with content-encoding won't be automatically
+		// deflated, but we don't want to sign it because GCS
+		// doesn't like it
+		req.HTTPRequest.Header.Set("Accept-Encoding", "identity")
+	}
+}
+
+func addRequestPayer(req *request.Request) {
+	// "Requester Pays" is only applicable to these
+	// see https://docs.aws.amazon.com/AmazonS3/latest/dev/RequesterPaysBuckets.html
+	if req.HTTPRequest.Method == "GET" || req.HTTPRequest.Method == "HEAD" || req.HTTPRequest.Method == "POST" {
+		req.HTTPRequest.Header.Set("x-amz-request-payer", "requester")
+	}
+}
+
+func (s *S3Backend) setV2Signer(handlers *request.Handlers) {
+	handlers.Sign.Clear()
+	handlers.Sign.PushBack(SignV2)
+	handlers.Sign.PushBackNamed(corehandlers.BuildContentLengthHandler)
+}
+
+func (s *S3Backend) newS3() {
+	s.S3Client = ycs3ext.NewS3Client(s3.New(s.config.Session, s.awsConfig))
+	if s.config.RequesterPays {
+		s.Handlers.Build.PushBack(addRequestPayer)
+	}
+	if s.iam {
+		s.setIAMSigner(&s.Handlers)
+	} else if s.v2Signer {
+		s.setV2Signer(&s.Handlers)
+	}
+	s.Handlers.Sign.PushBack(addAcceptEncoding)
+	ycs3ext.AddUnsignedPayloadHandler(s.S3Client)
+	s.Handlers.Build.RemoveByName("core.SDKVersionUserAgentHandler")
+	s.Handlers.Build.PushBackNamed(request.NamedHandler{
+		Name: "core.SDKVersionUserAgentHandler",
+		Fn: request.MakeAddToUserAgentHandler("AkaveFS", cfg.GEESEFS_VERSION,
+			runtime.Version(), runtime.GOOS, runtime.GOARCH),
+	})
+	s.Handlers.Build.PushBack(func(req *request.Request) {
+		if s.config.Subdomain {
+			req.HTTPRequest.URL.RawPath = rest.EscapePath(req.HTTPRequest.URL.Path, false)
+		}
+	})
+}
+
+func (s *S3Backend) detectBucketLocationByHEAD() (err error, isAws bool) {
+	u := url.URL{
+		Scheme: "https",
+		Host:   "s3.amazonaws.com",
+		Path:   s.bucket,
+	}
+
+	if s.awsConfig.Endpoint != nil {
+		endpoint, err := url.Parse(*s.awsConfig.Endpoint)
+		if err != nil {
+			return err, false
+		}
+
+		u.Scheme = endpoint.Scheme
+		u.Host = endpoint.Host
+	}
+
+	var req *http.Request
+	var resp *http.Response
+
+	req, err = http.NewRequest("HEAD", u.String(), nil)
+	if err != nil {
+		return
+	}
+
+	allowFails := 3
+	for i := 0; i < allowFails; i++ {
+		resp, err = s.Config.HTTPClient.Transport.RoundTrip(req)
+		if err != nil {
+			return
+		}
+		if resp.StatusCode < 500 {
+			break
+		} else if resp.StatusCode == 503 && resp.Status == "503 Slow Down" {
+			time.Sleep(time.Duration(i+1) * time.Second)
+			// allow infinite retries for 503 slow down
+			allowFails += 1
+		}
+	}
+
+	region := resp.Header["X-Amz-Bucket-Region"]
+	server := resp.Header["Server"]
+
+	s3Log.Debugf("HEAD %v = %v %v", u.String(), resp.StatusCode, region)
+	if region == nil {
+		for k, v := range resp.Header {
+			s3Log.Debugf("%v = %v", k, v)
+		}
+	}
+	if server != nil && server[0] == "AmazonS3" {
+		isAws = true
+	}
+
+	switch resp.StatusCode {
+	case 200:
+		// note that this only happen if the bucket is in us-east-1
+		if len(s.config.Profile) == 0 && os.Getenv("AWS_ACCESS_KEY_ID") == "" && !s.config.UseIAM {
+			s.awsConfig.Credentials = credentials.AnonymousCredentials
+			s3Log.Infof("anonymous bucket detected")
+		}
+	case 301:
+		if len(region) != 0 && region[0] != *s.awsConfig.Region {
+			s.awsConfig.Endpoint = aws.String("")
+		}
+	case 400:
+		err = syscall.EINVAL
+	case 403:
+		err = syscall.EACCES
+	case 404:
+		err = syscall.ENXIO
+	case 405:
+		err = syscall.ENOTSUP
+	default:
+		err = awserr.New(strconv.Itoa(resp.StatusCode), resp.Status, nil)
+	}
+
+	if len(region) != 0 {
+		if region[0] != *s.awsConfig.Region {
+			s3Log.Infof("Switching from region '%v' to '%v'",
+				*s.awsConfig.Region, region[0])
+			s.awsConfig.Region = &region[0]
+		}
+
+		// we detected a region, this is aws, the error is irrelevant
+		err = nil
+	}
+
+	return
+}
+
+func (s *S3Backend) testBucket(key string) (err error) {
+	oldAttempts := s.flags.ReadRetryAttempts
+	if oldAttempts == 0 {
+		// Never wait infinitely for init
+		s.flags.ReadRetryAttempts = 5
+	}
+	err = ReadBackoff(s.flags, func(attempt int) error {
+		_, err := s.HeadBlob(&HeadBlobInput{Key: key})
+		return err
+	})
+	if err != nil {
+		if mapAwsError(err) == syscall.ENOENT {
+			err = nil
+		}
+	}
+	s.flags.ReadRetryAttempts = oldAttempts
+	return
+}
+
+func (s *S3Backend) fallbackV2Signer() (err error) {
+	if s.v2Signer {
+		return syscall.EINVAL
+	}
+
+	s3Log.Infoln("Falling back to v2 signer")
+	s.v2Signer = true
+	s.newS3()
+	return
+}
+
+func (s *S3Backend) Init(key string) error {
+	var isAws bool
+	var err error
+
+	if s.config.NoDetect {
+		return nil
+	}
+
+	if !s.config.RegionSet {
+		err, _ = s.detectBucketLocationByHEAD()
+		if err == nil {
+			// we detected a region header, this is probably AWS S3,
+			// or we can use anonymous access, or both
+			s.newS3()
+		} else if err == syscall.ENXIO {
+			return fmt.Errorf("bucket %v does not exist", s.bucket)
+		} else {
+			// this is NOT AWS, we expect the request to fail with 403 if this is not
+			// an anonymous bucket
+			if err != syscall.EACCES {
+				s3Log.Errorf("Unable to access '%v': %v", s.bucket, err)
+			}
+		}
+	}
+
+	// try again with the credential to make sure
+	err = s.testBucket(key)
+	if err != nil {
+		if !isAws {
+			// EMC returns 403 because it doesn't support v4 signing
+			// swift3, ceph-s3 returns 400
+			// Amplidata just gives up and return 500
+			code := mapAwsError(err)
+			if code == syscall.EACCES || code == syscall.EINVAL || code == syscall.EAGAIN {
+				err = s.fallbackV2Signer()
+				if err != nil {
+					return err
+				}
+				err = s.testBucket(key)
+			}
+		}
+
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (s *S3Backend) ListObjectsV2(params *s3.ListObjectsV2Input) (*s3.ListObjectsV2Output, string, error) {
+	if s.config.ListV1Ext {
+		in := ycs3ext.ListObjectsV1ExtInput(*params)
+		resp, req, err := s.ListObjectsV1Ext(&in)
+		if err != nil {
+			if ycs3ext.IsUnsupportedListV1Ext(err) {
+				// Fallback to list v1
+				s.config.ListV1Ext = false
+				return s.ListObjectsV2(params)
+			}
+			return nil, "", err
+		}
+		out := ycs3ext.ToListObjectsV2Output(resp)
+		return out, s.getRequestId(req), nil
+	} else if s.config.ListV2 {
+		req, resp := s.ListObjectsV2Request(params)
+		err := req.Send()
+		if err != nil {
+			return nil, "", err
+		}
+		return resp, s.getRequestId(req), nil
+	} else {
+		v1 := s3.ListObjectsInput{
+			Bucket:       params.Bucket,
+			Delimiter:    params.Delimiter,
+			EncodingType: params.EncodingType,
+			MaxKeys:      params.MaxKeys,
+			Prefix:       params.Prefix,
+			RequestPayer: params.RequestPayer,
+		}
+		if params.StartAfter != nil {
+			v1.Marker = params.StartAfter
+		} else {
+			v1.Marker = params.ContinuationToken
+		}
+
+		objs, err := s.ListObjects(&v1)
+		if err != nil {
+			return nil, "", err
+		}
+
+		count := int64(len(objs.Contents))
+		v2Objs := s3.ListObjectsV2Output{
+			CommonPrefixes:        objs.CommonPrefixes,
+			Contents:              objs.Contents,
+			ContinuationToken:     objs.Marker,
+			Delimiter:             objs.Delimiter,
+			EncodingType:          objs.EncodingType,
+			IsTruncated:           objs.IsTruncated,
+			KeyCount:              &count,
+			MaxKeys:               objs.MaxKeys,
+			Name:                  objs.Name,
+			NextContinuationToken: objs.NextMarker,
+			Prefix:                objs.Prefix,
+			StartAfter:            objs.Marker,
+		}
+
+		return &v2Objs, "", nil
+	}
+}
+
+func metadataToLower(m map[string]*string) map[string]*string {
+	if m != nil {
+		var toDelete []string
+		for k, v := range m {
+			lower := strings.ToLower(k)
+			if lower != k {
+				m[lower] = v
+				toDelete = append(toDelete, k)
+			}
+		}
+		for _, k := range toDelete {
+			delete(m, k)
+		}
+	}
+	return m
+}
+
+func (s *S3Backend) getRequestId(r *request.Request) string {
+	return r.HTTPResponse.Header.Get("x-amz-request-id") + ": " +
+		r.HTTPResponse.Header.Get("x-amz-id-2")
+}
+
+func (s *S3Backend) HeadBlob(param *HeadBlobInput) (*HeadBlobOutput, error) {
+	head := s3.HeadObjectInput{Bucket: &s.bucket,
+		Key: &param.Key,
+	}
+	if s.config.SseC != "" {
+		head.SSECustomerAlgorithm = PString("AES256")
+		head.SSECustomerKey = &s.config.SseC
+		head.SSECustomerKeyMD5 = &s.config.SseCDigest
+	}
+
+	req, resp := s.HeadObjectRequest(&head)
+	err := req.Send()
+	if err != nil {
+		return nil, err
+	}
+	return &HeadBlobOutput{
+		BlobItemOutput: BlobItemOutput{
+			Key:          &param.Key,
+			ETag:         resp.ETag,
+			LastModified: resp.LastModified,
+			Size:         uint64(NilInt64(resp.ContentLength)),
+			StorageClass: resp.StorageClass,
+			Metadata:     metadataToLower(resp.Metadata),
+		},
+		ContentType: resp.ContentType,
+		IsDirBlob:   strings.HasSuffix(param.Key, "/"),
+		RequestId:   s.getRequestId(req),
+	}, nil
+}
+
+func (s *S3Backend) ListBlobs(param *ListBlobsInput) (*ListBlobsOutput, error) {
+	var maxKeys *int64
+
+	if param.MaxKeys != nil {
+		maxKeys = aws.Int64(int64(*param.MaxKeys))
+	}
+
+	if s.config.ListV1Ext {
+		in := ycs3ext.ListObjectsV1ExtInput(s3.ListObjectsV2Input{
+			Bucket:            &s.bucket,
+			Prefix:            param.Prefix,
+			Delimiter:         param.Delimiter,
+			MaxKeys:           maxKeys,
+			StartAfter:        param.StartAfter,
+			ContinuationToken: param.ContinuationToken,
+		})
+		resp, req, err := s.ListObjectsV1Ext(&in)
+		if err != nil {
+			if ycs3ext.IsUnsupportedListV1Ext(err) {
+				s.config.ListV1Ext = false
+				return s.ListBlobs(param)
+			}
+			return nil, err
+		}
+		return listBlobsFromV1Ext(resp, s.getRequestId(req))
+	}
+
+	resp, reqId, err := s.ListObjectsV2(&s3.ListObjectsV2Input{
+		Bucket:            &s.bucket,
+		Prefix:            param.Prefix,
+		Delimiter:         param.Delimiter,
+		MaxKeys:           maxKeys,
+		StartAfter:        param.StartAfter,
+		ContinuationToken: param.ContinuationToken,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	prefixes := make([]BlobPrefixOutput, 0)
+	items := make([]BlobItemOutput, 0)
+
+	for _, p := range resp.CommonPrefixes {
+		prefixes = append(prefixes, BlobPrefixOutput{Prefix: p.Prefix})
+	}
+	for _, i := range resp.Contents {
+		items = append(items, BlobItemOutput{
+			Key:          i.Key,
+			ETag:         i.ETag,
+			LastModified: i.LastModified,
+			Size:         uint64(*i.Size),
+			StorageClass: i.StorageClass,
+		})
+	}
+
+	return &ListBlobsOutput{
+		Prefixes:              prefixes,
+		Items:                 items,
+		NextContinuationToken: resp.NextContinuationToken,
+		IsTruncated:           *resp.IsTruncated,
+		RequestId:             reqId,
+	}, nil
+}
+
+func listBlobsFromV1Ext(resp *ycs3ext.ListObjectsV1ExtOutput, reqId string) (*ListBlobsOutput, error) {
+	prefixes := make([]BlobPrefixOutput, 0, len(resp.CommonPrefixes))
+	for _, p := range resp.CommonPrefixes {
+		prefixes = append(prefixes, BlobPrefixOutput{Prefix: p.Prefix})
+	}
+
+	items := make([]BlobItemOutput, 0, len(resp.Contents))
+	for _, i := range ycs3ext.ListBlobItemsFromV1Ext(resp) {
+		items = append(items, BlobItemOutput{
+			Key:          i.Key,
+			ETag:         i.ETag,
+			LastModified: i.LastModified,
+			Size:         i.Size,
+			StorageClass: i.StorageClass,
+			Metadata:     i.Metadata,
+		})
+	}
+
+	return &ListBlobsOutput{
+		Prefixes:              prefixes,
+		Items:                 items,
+		NextContinuationToken: resp.NextContinuationToken,
+		IsTruncated:           *resp.IsTruncated,
+		RequestId:             reqId,
+	}, nil
+}
+
+func (s *S3Backend) DeleteBlob(param *DeleteBlobInput) (*DeleteBlobOutput, error) {
+	req, _ := s.DeleteObjectRequest(&s3.DeleteObjectInput{
+		Bucket: &s.bucket,
+		Key:    &param.Key,
+	})
+	err := req.Send()
+	if err != nil {
+		return nil, err
+	}
+	return &DeleteBlobOutput{s.getRequestId(req)}, nil
+}
+
+func (s *S3Backend) DeleteBlobs(param *DeleteBlobsInput) (*DeleteBlobsOutput, error) {
+	num_objs := len(param.Items)
+
+	var items s3.Delete
+	var objs = make([]*s3.ObjectIdentifier, num_objs)
+
+	for i, _ := range param.Items {
+		objs[i] = &s3.ObjectIdentifier{Key: &param.Items[i]}
+	}
+
+	// Add list of objects to delete to Delete object
+	items.SetObjects(objs)
+
+	req, _ := s.DeleteObjectsRequest(&s3.DeleteObjectsInput{
+		Bucket: &s.bucket,
+		Delete: &items,
+	})
+	err := req.Send()
+	if err != nil {
+		return nil, err
+	}
+
+	return &DeleteBlobsOutput{s.getRequestId(req)}, nil
+}
+
+func (s *S3Backend) RenameBlob(param *RenameBlobInput) (*RenameBlobOutput, error) {
+	return nil, syscall.ENOTSUP
+}
+
+func (s *S3Backend) mpuCopyPart(from string, to string, mpuId string, bytes string, part int64, srcEtag *string) (*string, error) {
+	// XXX use CopySourceIfUnmodifiedSince to ensure that
+	// we are copying from the same object
+	params := &s3.UploadPartCopyInput{
+		Bucket:            &s.bucket,
+		Key:               &to,
+		CopySource:        aws.String(pathEscape(from)),
+		UploadId:          &mpuId,
+		CopySourceRange:   &bytes,
+		CopySourceIfMatch: srcEtag,
+		PartNumber:        &part,
+	}
+	if s.config.SseC != "" {
+		params.SSECustomerAlgorithm = PString("AES256")
+		params.SSECustomerKey = &s.config.SseC
+		params.SSECustomerKeyMD5 = &s.config.SseCDigest
+		params.CopySourceSSECustomerAlgorithm = PString("AES256")
+		params.CopySourceSSECustomerKey = &s.config.SseC
+		params.CopySourceSSECustomerKeyMD5 = &s.config.SseCDigest
+	}
+
+	s3Log.Debug(params)
+
+	resp, err := s.UploadPartCopy(params)
+	if err != nil {
+		s3Log.Warnf("UploadPartCopy %v = %v", params, err)
+		return nil, err
+	}
+	return resp.CopyPartResult.ETag, nil
+}
+
+func (s *S3Backend) partsRequired(partSizes []cfg.PartSizeConfig, size int64) int {
+	var partsRequired int
+	for _, cfg := range partSizes {
+		totalSize := int64(cfg.PartCount * cfg.PartSize)
+		if totalSize >= size {
+			partsRequired += int((size + int64(cfg.PartSize) - 1) / int64(cfg.PartSize))
+			break
+		}
+		partsRequired += int(cfg.PartCount)
+		size -= int64(totalSize)
+	}
+	return partsRequired
+}
+
+func (s *S3Backend) mpuCopyParts(size int64, from string, to string, mpuId string, srcEtag *string, partSizes []cfg.PartSizeConfig) ([]*s3.CompletedPart, error) {
+	parts := make([]*s3.CompletedPart, s.partsRequired(partSizes, size))
+
+	wg := errgroup.Group{}
+	wg.SetLimit(s.flags.MaxParallelParts)
+
+	var startOffset int64
+	var partIdx int
+	for _, cfg := range partSizes {
+		for i := 0; i < int(cfg.PartCount) && startOffset < size; i++ {
+			endOffset := MinInt64(startOffset+int64(cfg.PartSize), size)
+			bytes := fmt.Sprintf("bytes=%v-%v", startOffset, endOffset-1)
+
+			partNum := int64(partIdx + 1)
+			wg.Go(func() error {
+				etag, err := s.mpuCopyPart(from, to, mpuId, bytes, partNum, srcEtag)
+				if err != nil {
+					return err
+				}
+				parts[partNum-1] = &s3.CompletedPart{
+					ETag:       etag,
+					PartNumber: &partNum,
+				}
+				return nil
+			})
+
+			partIdx++
+			startOffset += int64(cfg.PartSize)
+		}
+	}
+
+	return parts, wg.Wait()
+}
+
+func (s *S3Backend) defaultCopyPartSizes(size int64) []cfg.PartSizeConfig {
+	const MAX_PARTS = 10000
+	const MIN_PART_SIZE = 50 * 1024 * 1024
+
+	partSize := MaxInt64(size/(MAX_PARTS-1), MIN_PART_SIZE)
+	return []cfg.PartSizeConfig{
+		{PartSize: uint64(partSize), PartCount: MAX_PARTS},
+	}
+}
+
+func (s *S3Backend) copyObjectMultipart(size int64, from string, to string, mpuId string,
+	srcEtag *string, metadata map[string]*string, storageClass *string) (requestId string, err error) {
+
+	const MAX_S3_MPU_SIZE = 5 * 1024 * 1024 * 1024 * 1024
+	if size > MAX_S3_MPU_SIZE {
+		panic(fmt.Sprintf("object size: %v exceeds maximum S3 MPU size: %v", size, MAX_S3_MPU_SIZE))
+	}
+
+	if mpuId == "" {
+		params := &s3.CreateMultipartUploadInput{
+			Bucket:       &s.bucket,
+			Key:          &to,
+			StorageClass: storageClass,
+			ContentType:  s.flags.GetMimeType(to),
+			Metadata:     metadataToLower(metadata),
+		}
+
+		if s.config.UseSSE {
+			params.ServerSideEncryption = &s.sseType
+			if s.config.UseKMS && s.config.KMSKeyID != "" {
+				params.SSEKMSKeyId = &s.config.KMSKeyID
+			}
+		} else if s.config.SseC != "" {
+			params.SSECustomerAlgorithm = PString("AES256")
+			params.SSECustomerKey = &s.config.SseC
+			params.SSECustomerKeyMD5 = &s.config.SseCDigest
+		}
+
+		if s.config.ACL != "" {
+			params.ACL = &s.config.ACL
+		}
+
+		resp, err := s.CreateMultipartUpload(params)
+		if err != nil {
+			return "", err
+		}
+
+		mpuId = *resp.UploadId
+	}
+
+	partSizes := s.defaultCopyPartSizes(size)
+	// Preserve original part sizes if patch is enabled.
+	if s.flags.UsePatch {
+		partSizes = s.flags.PartSizes
+	}
+
+	parts, err := s.mpuCopyParts(size, from, to, mpuId, srcEtag, partSizes)
+	if err != nil {
+		return
+	}
+
+	params := &s3.CompleteMultipartUploadInput{
+		Bucket:   &s.bucket,
+		Key:      &to,
+		UploadId: &mpuId,
+		MultipartUpload: &s3.CompletedMultipartUpload{
+			Parts: parts,
+		},
+	}
+
+	s3Log.Debug(params)
+
+	req, _ := s.CompleteMultipartUploadRequest(params)
+	err = req.Send()
+	if err != nil {
+		s3Log.Errorf("Complete MPU %v = %v", params, err)
+	} else {
+		requestId = s.getRequestId(req)
+	}
+
+	return
+}
+
+func (s *S3Backend) CopyBlob(param *CopyBlobInput) (*CopyBlobOutput, error) {
+	metadataDirective := s3.MetadataDirectiveCopy
+	if param.Metadata != nil {
+		metadataDirective = s3.MetadataDirectiveReplace
+	}
+
+	from := s.config.CopySourceBucket + "/" + param.Source
+
+	// Copy into the same object is used to just update metadata
+	// and should be very quick regardless of parameters
+	if param.Source != param.Destination {
+
+		// FIXME Remove additional HEAD query
+		if param.Size == nil || param.ETag == nil || (*param.Size > s.config.MultipartCopyThreshold &&
+			(param.Metadata == nil || param.StorageClass == nil)) {
+
+			params := &HeadBlobInput{Key: param.Source}
+			resp, err := s.HeadBlob(params)
+			if err != nil {
+				return nil, err
+			}
+
+			param.Size = &resp.Size
+			param.ETag = resp.ETag
+			if param.Metadata == nil {
+				param.Metadata = resp.Metadata
+			}
+			param.StorageClass = resp.StorageClass
+		}
+
+		if param.StorageClass == nil {
+			param.StorageClass = s.selectStorageClass(param.Size)
+		}
+
+		if !s.gcs && *param.Size > s.config.MultipartCopyThreshold {
+			reqId, err := s.copyObjectMultipart(int64(*param.Size), from, param.Destination, "", param.ETag, param.Metadata, param.StorageClass)
+			if err != nil {
+				return nil, err
+			}
+			return &CopyBlobOutput{reqId}, nil
+		}
+	}
+
+	params := &s3.CopyObjectInput{
+		Bucket:            &s.bucket,
+		CopySource:        aws.String(pathEscape(from)),
+		Key:               &param.Destination,
+		StorageClass:      param.StorageClass,
+		ContentType:       s.flags.GetMimeType(param.Destination),
+		Metadata:          metadataToLower(param.Metadata),
+		MetadataDirective: &metadataDirective,
+	}
+
+	s3Log.Debug(params)
+
+	if s.config.UseSSE {
+		params.ServerSideEncryption = &s.sseType
+		if s.config.UseKMS && s.config.KMSKeyID != "" {
+			params.SSEKMSKeyId = &s.config.KMSKeyID
+		}
+	} else if s.config.SseC != "" {
+		params.SSECustomerAlgorithm = PString("AES256")
+		params.SSECustomerKey = &s.config.SseC
+		params.SSECustomerKeyMD5 = &s.config.SseCDigest
+		params.CopySourceSSECustomerAlgorithm = PString("AES256")
+		params.CopySourceSSECustomerKey = &s.config.SseC
+		params.CopySourceSSECustomerKeyMD5 = &s.config.SseCDigest
+	}
+
+	if s.config.ACL != "" {
+		params.ACL = &s.config.ACL
+	}
+
+	req, _ := s.CopyObjectRequest(params)
+	// make a shallow copy of the client so we can change the
+	// timeout only for this request but still re-use the
+	// connection pool
+	c := *(req.Config.HTTPClient)
+	req.Config.HTTPClient = &c
+	req.Config.HTTPClient.Timeout = 15 * time.Minute
+	err := req.Send()
+	if err != nil {
+		s3Log.Warnf("CopyObject %v = %v", params, err)
+		return nil, err
+	}
+
+	return &CopyBlobOutput{s.getRequestId(req)}, nil
+}
+
+func shouldRetry(err error) bool {
+	err = mapAwsError(err)
+	return err != syscall.ENOENT && err != syscall.EINVAL &&
+		err != syscall.EACCES && err != syscall.ENOTSUP && err != syscall.ERANGE
+}
+
+func (s *S3Backend) GetBlob(param *GetBlobInput) (*GetBlobOutput, error) {
+	get := s3.GetObjectInput{
+		Bucket: &s.bucket,
+		Key:    &param.Key,
+	}
+
+	if s.config.SseC != "" {
+		get.SSECustomerAlgorithm = PString("AES256")
+		get.SSECustomerKey = &s.config.SseC
+		get.SSECustomerKeyMD5 = &s.config.SseCDigest
+	}
+
+	if param.Start != 0 || param.Count != 0 {
+		var bytes string
+		if param.Count != 0 {
+			bytes = fmt.Sprintf("bytes=%v-%v", param.Start, param.Start+param.Count-1)
+		} else {
+			bytes = fmt.Sprintf("bytes=%v-", param.Start)
+		}
+		get.Range = &bytes
+	}
+	// TODO handle IfMatch
+
+	req, resp := s.GetObjectRequest(&get)
+	err := req.Send()
+	if err != nil {
+		return nil, err
+	}
+
+	return &GetBlobOutput{
+		HeadBlobOutput: HeadBlobOutput{
+			BlobItemOutput: BlobItemOutput{
+				Key:          &param.Key,
+				ETag:         resp.ETag,
+				LastModified: resp.LastModified,
+				Size:         uint64(NilInt64(resp.ContentLength)),
+				StorageClass: resp.StorageClass,
+				Metadata:     metadataToLower(resp.Metadata),
+			},
+			ContentType: resp.ContentType,
+		},
+		Body:      resp.Body,
+		RequestId: s.getRequestId(req),
+	}, nil
+}
+
+func getDate(resp *http.Response) *time.Time {
+	date := resp.Header.Get("Date")
+	if date != "" {
+		t, err := http.ParseTime(date)
+		if err == nil {
+			return &t
+		}
+		s3Log.Warnf("invalidate date for %v: %v",
+			resp.Request.URL.Path, date)
+	}
+	return nil
+}
+
+// applyS3PutConditions sets If-Match / If-None-Match on a PutObject request.
+func applyS3PutConditions(req *request.Request, param *PutBlobInput) {
+	if param.IfMatch != nil {
+		req.HTTPRequest.Header.Set("If-Match", *param.IfMatch)
+	}
+	if param.IfNoneMatch != nil {
+		req.HTTPRequest.Header.Set("If-None-Match", *param.IfNoneMatch)
+	}
+}
+
+func (s *S3Backend) PutBlob(param *PutBlobInput) (*PutBlobOutput, error) {
+	storageClass := s.selectStorageClass(param.Size)
+
+	put := &s3.PutObjectInput{
+		Bucket:       &s.bucket,
+		Key:          &param.Key,
+		Metadata:     metadataToLower(param.Metadata),
+		Body:         param.Body,
+		StorageClass: storageClass,
+		ContentType:  param.ContentType,
+	}
+
+	if s.config.UseSSE {
+		put.ServerSideEncryption = &s.sseType
+		if s.config.UseKMS && s.config.KMSKeyID != "" {
+			put.SSEKMSKeyId = &s.config.KMSKeyID
+		}
+	} else if s.config.SseC != "" {
+		put.SSECustomerAlgorithm = PString("AES256")
+		put.SSECustomerKey = &s.config.SseC
+		put.SSECustomerKeyMD5 = &s.config.SseCDigest
+	}
+
+	if s.config.ACL != "" {
+		put.ACL = &s.config.ACL
+	}
+	put.Tagging = encodePutBlobTags(param.Tags)
+
+	req, resp := s.PutObjectRequest(put)
+	applyS3PutConditions(req, param)
+	err := req.Send()
+	if err != nil {
+		return nil, err
+	}
+
+	return &PutBlobOutput{
+		ETag:         resp.ETag,
+		LastModified: getDate(req.HTTPResponse),
+		StorageClass: storageClass,
+		RequestId:    s.getRequestId(req),
+	}, nil
+}
+
+func (s *S3Backend) selectStorageClass(size *uint64) *string {
+	storageClass := s.config.StorageClass
+	if size != nil && *size < s.config.ColdMinSize && storageClass == "STANDARD_IA" {
+		storageClass = "STANDARD"
+	}
+	return &storageClass
+}
+
+func (s *S3Backend) PatchBlob(param *PatchBlobInput) (*PatchBlobOutput, error) {
+	patch := &ycs3ext.PatchObjectInput{
+		Bucket:       &s.bucket,
+		Key:          &param.Key,
+		ContentRange: PString(fmt.Sprintf("bytes %d-%d/*", param.Offset, param.Offset+param.Size-1)),
+		Body:         param.Body,
+	}
+	if param.AppendPartSize > 0 {
+		patch.PatchAppendPartSize = &param.AppendPartSize
+	}
+
+	req, resp := s.PatchObjectRequest(patch)
+	err := req.Send()
+	if err != nil {
+		if awsErr, ok := err.(awserr.Error); ok {
+			if awsErr.Code() == ycs3ext.ErrCodeNotImplemented {
+				return nil, syscall.ENOSYS
+			}
+		}
+		return nil, err
+	}
+
+	return &PatchBlobOutput{
+		ETag:         resp.Object.ETag,
+		LastModified: resp.Object.LastModified,
+		RequestId:    s.getRequestId(req),
+	}, nil
+}
+
+func (s *S3Backend) MultipartBlobBegin(param *MultipartBlobBeginInput) (*MultipartBlobCommitInput, error) {
+	mpu := s3.CreateMultipartUploadInput{
+		Bucket:       &s.bucket,
+		Key:          &param.Key,
+		StorageClass: &s.config.StorageClass,
+		ContentType:  param.ContentType,
+	}
+
+	if s.config.UseSSE {
+		mpu.ServerSideEncryption = &s.sseType
+		if s.config.UseKMS && s.config.KMSKeyID != "" {
+			mpu.SSEKMSKeyId = &s.config.KMSKeyID
+		}
+	} else if s.config.SseC != "" {
+		mpu.SSECustomerAlgorithm = PString("AES256")
+		mpu.SSECustomerKey = &s.config.SseC
+		mpu.SSECustomerKeyMD5 = &s.config.SseCDigest
+	}
+
+	if s.config.ACL != "" {
+		mpu.ACL = &s.config.ACL
+	}
+
+	mpu.Metadata = metadataToLower(param.Metadata)
+
+	resp, err := s.CreateMultipartUpload(&mpu)
+	if err != nil {
+		s3Log.Warnf("CreateMultipartUpload %v = %v", param.Key, err)
+		return nil, err
+	}
+
+	return &MultipartBlobCommitInput{
+		Key:      &param.Key,
+		Metadata: mpu.Metadata,
+		UploadId: resp.UploadId,
+		Parts:    make([]*string, 10000), // at most 10K parts
+	}, nil
+}
+
+func (s *S3Backend) MultipartBlobAdd(param *MultipartBlobAddInput) (*MultipartBlobAddOutput, error) {
+	params := s3.UploadPartInput{
+		Bucket:     &s.bucket,
+		Key:        param.Commit.Key,
+		PartNumber: aws.Int64(int64(param.PartNumber)),
+		UploadId:   param.Commit.UploadId,
+		Body:       param.Body,
+	}
+	if s.config.SseC != "" {
+		params.SSECustomerAlgorithm = PString("AES256")
+		params.SSECustomerKey = &s.config.SseC
+		params.SSECustomerKeyMD5 = &s.config.SseCDigest
+	}
+	s3Log.Debug(params)
+
+	req, resp := s.UploadPartRequest(&params)
+	err := req.Send()
+	if err != nil {
+		return nil, err
+	}
+
+	return &MultipartBlobAddOutput{
+		RequestId: s.getRequestId(req),
+		PartId:    resp.ETag,
+	}, nil
+}
+
+func (s *S3Backend) MultipartBlobCopy(param *MultipartBlobCopyInput) (*MultipartBlobCopyOutput, error) {
+	params := s3.UploadPartCopyInput{
+		Bucket:     &s.bucket,
+		Key:        param.Commit.Key,
+		PartNumber: aws.Int64(int64(param.PartNumber)),
+		CopySource: aws.String(pathEscape(s.config.CopySourceBucket + "/" + param.CopySource)),
+		UploadId:   param.Commit.UploadId,
+	}
+	if param.Size != 0 {
+		r := fmt.Sprintf("bytes=%v-%v", param.Offset, param.Offset+param.Size-1)
+		params.CopySourceRange = &r
+	}
+	if s.config.SseC != "" {
+		params.SSECustomerAlgorithm = PString("AES256")
+		params.SSECustomerKey = &s.config.SseC
+		params.SSECustomerKeyMD5 = &s.config.SseCDigest
+	}
+	s3Log.Debug(params)
+
+	req, resp := s.UploadPartCopyRequest(&params)
+	err := req.Send()
+	if err != nil {
+		return nil, err
+	}
+
+	return &MultipartBlobCopyOutput{
+		RequestId: s.getRequestId(req),
+		PartId:    resp.CopyPartResult.ETag,
+	}, nil
+}
+
+func (s *S3Backend) MultipartBlobCommit(param *MultipartBlobCommitInput) (*MultipartBlobCommitOutput, error) {
+	var parts []*s3.CompletedPart
+	for i := uint32(0); i < param.NumParts; i++ {
+		// Allow to skip some numbers
+		if param.Parts[i] != nil {
+			parts = append(parts, &s3.CompletedPart{
+				ETag:       param.Parts[i],
+				PartNumber: aws.Int64(int64(i + 1)),
+			})
+		}
+	}
+
+	mpu := s3.CompleteMultipartUploadInput{
+		Bucket:   &s.bucket,
+		Key:      param.Key,
+		UploadId: param.UploadId,
+		MultipartUpload: &s3.CompletedMultipartUpload{
+			Parts: parts,
+		},
+	}
+
+	s3Log.Debug(mpu)
+
+	req, resp := s.CompleteMultipartUploadRequest(&mpu)
+	err := req.Send()
+	if err != nil {
+		return nil, err
+	}
+
+	s3Log.Debug(resp)
+
+	return &MultipartBlobCommitOutput{
+		ETag:         resp.ETag,
+		LastModified: getDate(req.HTTPResponse),
+		RequestId:    s.getRequestId(req),
+	}, nil
+}
+
+func (s *S3Backend) MultipartBlobAbort(param *MultipartBlobCommitInput) (*MultipartBlobAbortOutput, error) {
+	mpu := s3.AbortMultipartUploadInput{
+		Bucket:   &s.bucket,
+		Key:      param.Key,
+		UploadId: param.UploadId,
+	}
+	req, _ := s.AbortMultipartUploadRequest(&mpu)
+	err := req.Send()
+	if err != nil {
+		return nil, err
+	}
+	return &MultipartBlobAbortOutput{s.getRequestId(req)}, nil
+}
+
+func (s *S3Backend) MultipartExpire(param *MultipartExpireInput) (*MultipartExpireOutput, error) {
+	if s.config.NoExpireMultipart {
+		return &MultipartExpireOutput{}, nil
+	}
+
+	mpu, err := s.ListMultipartUploads(&s3.ListMultipartUploadsInput{
+		Bucket: &s.bucket,
+	})
+	if err != nil {
+		return nil, err
+	}
+	s3Log.Debug(mpu)
+
+	go func() {
+		now := time.Now()
+		for _, upload := range mpu.Uploads {
+			expireTime := upload.Initiated.Add(s.config.MultipartAge)
+
+			if !expireTime.After(now) {
+				// FIXME: Maybe keep parts with known etags if we load them from disk
+				params := &s3.AbortMultipartUploadInput{
+					Bucket:   &s.bucket,
+					Key:      upload.Key,
+					UploadId: upload.UploadId,
+				}
+				resp, err := s.AbortMultipartUpload(params)
+				s3Log.Debug(resp)
+
+				if mapAwsError(err) == syscall.EACCES {
+					break
+				}
+			} else {
+				s3Log.Debugf("Keeping MPU Key=%v Id=%v", *upload.Key, *upload.UploadId)
+			}
+		}
+	}()
+
+	return &MultipartExpireOutput{}, nil
+}
+
+func (s *S3Backend) RemoveBucket(param *RemoveBucketInput) (*RemoveBucketOutput, error) {
+	_, err := s.DeleteBucket(&s3.DeleteBucketInput{Bucket: &s.bucket})
+	if err != nil {
+		s3Log.Errorf("delete bucket %v: error %v", s.bucket, err)
+		return nil, err
+	}
+	return &RemoveBucketOutput{}, nil
+}
+
+func (s *S3Backend) MakeBucket(param *MakeBucketInput) (*MakeBucketOutput, error) {
+	_, err := s.CreateBucket(&s3.CreateBucketInput{
+		Bucket: &s.bucket,
+		ACL:    &s.config.ACL,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	if s.config.BucketOwner != "" {
+		var owner s3.Tag
+		owner.SetKey("Owner")
+		owner.SetValue(s.config.BucketOwner)
+
+		param := s3.PutBucketTaggingInput{
+			Bucket: &s.bucket,
+			Tagging: &s3.Tagging{
+				TagSet: []*s3.Tag{&owner},
+			},
+		}
+
+		for i := 0; i < 10; i++ {
+			_, err = s.PutBucketTagging(&param)
+			code := mapAwsError(err)
+			if code == nil {
+				break
+			}
+			switch code {
+			case syscall.ENXIO, syscall.EINTR:
+				s3Log.Infof("waiting for bucket")
+				time.Sleep((time.Duration(i) + 1) * 2 * time.Second)
+			default:
+				s3Log.Errorf("Failed to tag bucket %v: %v", s.bucket, err)
+				return nil, err
+			}
+		}
+	}
+
+	return &MakeBucketOutput{}, err
+}
+
+func (s *S3Backend) Delegate() interface{} {
+	return s
+}
