@@ -1,3 +1,9 @@
+akavefs (0.43.8-1) unstable; urgency=medium
+
+  * Rename the installed executable and package to AkaveFS.
+
+ -- Angelo Schalley <70083964+Angelo-gh3990@users.noreply.github.com>  Tue, 25 Aug 2026 12:00:00 -0500
+
 geesefs (0.43.8) unstable; urgency=medium
 
   * Refresh IAM token lazily so it survives a long process pause (#179)

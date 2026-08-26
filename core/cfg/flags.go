@@ -147,7 +147,7 @@ MISC OPTIONS:
 		},
 		cli.BoolFlag{
 			Name:  "ignore-setting-attrs-for-root-dir-erros",
-			Usage: "Ignore changing attributes for root of geesefs (ex. 'touch ./mountpoint')",
+			Usage: "Ignore changing attributes for root of AkaveFS (ex. 'touch ./mountpoint')",
 		},
 	}
 
@@ -672,7 +672,7 @@ MISC OPTIONS:
 
 		cli.BoolFlag{
 			Name:  "f",
-			Usage: "Run geesefs in foreground.",
+			Usage: "Run AkaveFS in foreground.",
 		},
 
 		cli.StringFlag{
@@ -716,7 +716,7 @@ MISC OPTIONS:
 	}
 
 	app = &cli.App{
-		Name:     "geesefs",
+		Name:     "akavefs",
 		Version:  GEESEFS_VERSION,
 		Usage:    "Mount an S3 bucket locally",
 		HideHelp: true,

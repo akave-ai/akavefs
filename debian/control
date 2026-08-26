@@ -1,4 +1,4 @@
-Source: geesefs
+Source: akavefs
 Maintainer: Debian Go Packaging Team <team+pkg-go@tracker.debian.org>
 Uploaders: Vitaliy Filippov <vitalif@yourcmc.ru>
 Section: golang
@@ -8,18 +8,18 @@ Build-Depends: debhelper-compat (= 11),
                dh-golang,
                golang-any
 Standards-Version: 4.5.0
-Vcs-Browser: https://salsa.debian.org/go-team/packages/geesefs
-Vcs-Git: https://salsa.debian.org/go-team/packages/geesefs.git
-Homepage: https://github.com/yandex-cloud/geesefs
+Vcs-Browser: https://github.com/akave-ai/akavefs
+Vcs-Git: https://github.com/akave-ai/akavefs.git
+Homepage: https://github.com/akave-ai/akavefs
 Rules-Requires-Root: no
 XS-Go-Import-Path: github.com/yandex-cloud/geesefs
 
-Package: geesefs
+Package: akavefs
 Architecture: any
 Depends: ${misc:Depends},
          ${shlibs:Depends}
 Built-Using: ${misc:Built-Using}
 Description: High-performance FUSE S3 file system
- GeeseFS allows you to mount an S3 bucket as a file system.
+ AkaveFS allows you to mount an S3 bucket as a file system.
  FUSE file systems based on S3 typically have performance problems, especially with small files and metadata operations.
- GeeseFS attempts to solve these problems by using aggressive parallelism and asynchrony.
+ AkaveFS uses aggressive parallelism and asynchrony to address these problems.

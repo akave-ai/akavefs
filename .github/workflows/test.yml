@@ -35,7 +35,10 @@ jobs:
           xfstests-${{ runner.os }}-
 
     - name: Build linux amd64
-      run: env CGO_ENABLED=0 go build -o geesefs-linux-amd64 -v && ln -s geesefs-linux-amd64 geesefs
+      run: make build && cp akavefs akavefs-linux-amd64
+
+    - name: Verify CLI help
+      run: ./akavefs --help
 
     - name: Run tests
       run: SAME_PROCESS_MOUNT=1 make run-test

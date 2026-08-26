@@ -73,6 +73,10 @@ func main() {
 	var child *os.Process
 
 	app.Action = func(c *cli.Context) (err error) {
+		if c.Bool("help") {
+			return cli.ShowAppHelp(c)
+		}
+
 		// We should get two arguments exactly. Otherwise error out.
 		if len(c.Args()) != 2 {
 			fmt.Fprintf(

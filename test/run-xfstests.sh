@@ -23,7 +23,7 @@ mkdir -p /tmp/geesefs /tmp/geesefs2
 
 sleep 5
 
-[ -e /usr/bin/geesefs ] || sudo ln -s `pwd`/geesefs /usr/bin/geesefs
+[ -e /usr/bin/akavefs ] || sudo ln -s `pwd`/akavefs /usr/bin/akavefs
 
 log "Installing s3cmd"
 sudo apt-get update

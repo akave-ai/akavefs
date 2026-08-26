@@ -986,7 +986,7 @@ func mountFuseFS(fs *Goofys) (mfs MountedFS, err error) {
 	// Mount the file system.
 	mountCfg := &fuse.MountConfig{
 		FSName:                  fs.bucket,
-		Subtype:                 "geesefs",
+		Subtype:                 "akavefs",
 		Options:                 convertFuseOptions(fs.flags),
 		ErrorLogger:             cfg.GetStdLogger(cfg.NewLogger("fuse"), logrus.ErrorLevel),
 		DisableWritebackCaching: true,

@@ -1,7 +1,8 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
-Upstream-Name: geesefs
-Upstream-Contact: Vitaliy Filippov <vitalif@yourcmc.ru>
-Source: https://github.com/yandex-cloud/geesefs
+Upstream-Name: AkaveFS
+Upstream-Contact: Akave AI
+Source: https://github.com/akave-ai/akavefs
+Comment: AkaveFS is derived from GeeseFS (https://github.com/yandex-cloud/geesefs).
 
 Files: *
 Copyright: 2015-2019 Ka-Hing Cheung, 2021 Yandex LLC

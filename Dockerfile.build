@@ -1,4 +1,4 @@
-# Dockerfile for building geesefs
+# Dockerfile for building AkaveFS
 FROM golang:1.25.9-alpine AS builder
 
 # Install required packages
@@ -18,9 +18,9 @@ ENV CGO_ENABLED=0
 ENV GOOS=linux
 
 # Build binary
-RUN go build -ldflags "-X main.Version=docker-build -s -w" -o geesefs .
+RUN go build -ldflags "-X main.Version=docker-build -s -w" -o akavefs .
 
 # Final stage - minimal image with binary only (optional)
 FROM scratch AS final
-COPY --from=builder /build/geesefs /geesefs
-ENTRYPOINT ["/geesefs"]
+COPY --from=builder /build/akavefs /akavefs
+ENTRYPOINT ["/akavefs"]

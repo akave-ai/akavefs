@@ -1,2 +1,3 @@
-README.md usr/share/doc/geesefs
-README-azure.md usr/share/doc/geesefs
+_build/akavefs usr/bin
+README.md usr/share/doc/akavefs
+README-azure.md usr/share/doc/akavefs

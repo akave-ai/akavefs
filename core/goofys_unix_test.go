@@ -58,7 +58,7 @@ func (s *GoofysTest) mountCommon(t *C, mountPoint string, sameProc bool) {
 		}
 		exe := os.Getenv("GEESEFS_BINARY")
 		if exe == "" {
-			exe = "../geesefs"
+			exe = "../akavefs"
 		}
 		c := exec.Command("/bin/bash", "-c",
 			exe+" --debug_fuse --debug_s3"+
