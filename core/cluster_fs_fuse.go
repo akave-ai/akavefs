@@ -904,7 +904,7 @@ func MountCluster(
 
 	mountConfig := &fuse.MountConfig{
 		FSName:                  bucketName,
-		Subtype:                 "geesefs",
+		Subtype:                 "akavefs",
 		Options:                 convertFuseOptions(flags),
 		ErrorLogger:             cfg.GetStdLogger(cfg.NewLogger("fuse"), logrus.ErrorLevel),
 		DisableWritebackCaching: true,
@@ -987,3 +987,4 @@ func (fs *ClusterFs) Join(ctx context.Context) error {
 func (fs *ClusterFs) Unmount() error {
 	return TryUnmount(fs.Flags.MountPoint)
 }
+
