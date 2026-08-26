@@ -1167,6 +1167,37 @@ func (s *GoofysTest) TestBackendListPrefix(t *C) {
 	t.Assert(*res.Items[0].Key, Equals, "test_list_prefix/dir2/dir3/file4")
 }
 
+func (s *GoofysTest) TestRenameDirColdTarget(t *C) {
+	s.fs.flags.StatCacheTTL = time.Minute
+	for _, key := range []string{"dir2/a_src/f1", "dir2/z_sib/f2"} {
+		_, err := s.cloud.PutBlob(&PutBlobInput{Key: key, Body: bytes.NewReader([]byte("x")), Size: PUInt64(1)})
+		t.Assert(err, IsNil)
+	}
+	_, err := s.cloud.PutBlob(&PutBlobInput{Key: "dir2/a_tgt/", Body: bytes.NewReader(nil), Size: PUInt64(0)})
+	t.Assert(err, IsNil)
+	parent, err := s.fs.LookupPath("dir2")
+	t.Assert(err, IsNil)
+	_, err = s.fs.LookupPath("dir2/a_src")
+	t.Assert(err, IsNil)
+	target, err := s.fs.LookupPath("dir2/a_tgt")
+	t.Assert(err, IsNil)
+	target.mu.Lock()
+	target.dir.DirTime = time.Time{}
+	target.dir.listMarker = ""
+	target.dir.listDone = false
+	target.mu.Unlock()
+	done := make(chan error, 1)
+	go func() { done <- parent.Rename("a_src", parent, "a_tgt") }()
+	select {
+	case err = <-done:
+		t.Assert(err, IsNil)
+	case <-time.After(30 * time.Second):
+		t.Fatalf("Rename deadlocked while checking a cold destination directory")
+	}
+	_, err = s.fs.LookupPath("dir2/a_tgt/f1")
+	t.Assert(err, IsNil)
+}
+
 func (s *GoofysTest) TestRenameDir(t *C) {
 	s.fs.flags.StatCacheTTL = 0
 

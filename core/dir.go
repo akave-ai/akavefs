@@ -1447,13 +1447,66 @@ func appendChildName(parent, child string) string {
 	return parent + child
 }
 
-func (inode *Inode) isEmptyDir() (bool, error) {
-	dh := NewDirHandle(inode)
-	dh.mu.Lock()
-	dh.Seek(2)
-	en, err := dh.ReadDir()
-	dh.mu.Unlock()
-	return en == nil, err
+// isEmptyDirFast checks Rename's destination without entering the readdir
+// loading path, which can re-lock an ancestor already held by Rename.
+func (inode *Inode) isEmptyDirFast() (bool, error) {
+	inode.mu.Lock()
+	if inode.hasLiveChild() || (inode.dir.listDone &&
+		!expired(inode.dir.DirTime, inode.fs.flags.StatCacheTTL)) {
+		empty := !inode.hasLiveChild()
+		inode.mu.Unlock()
+		return empty, nil
+	}
+	deleted := make(map[string]struct{}, len(inode.dir.DeletedChildren))
+	for name := range inode.dir.DeletedChildren {
+		deleted[name] = struct{}{}
+	}
+	inode.mu.Unlock()
+
+	cloud, key := inode.cloud()
+	prefix := key + "/"
+	var token *string
+	for {
+		resp, err := RetryListBlobs(inode.fs.flags, cloud, &ListBlobsInput{
+			Prefix: PString(prefix), Delimiter: PString("/"), MaxKeys: PUInt32(1000), ContinuationToken: token,
+		})
+		if err != nil {
+			return false, err
+		}
+		for _, item := range resp.Items {
+			if *item.Key != prefix {
+				if _, ok := deleted[(*item.Key)[len(prefix):]]; !ok {
+					return false, nil
+				}
+			}
+		}
+		for _, item := range resp.Prefixes {
+			name := strings.TrimSuffix((*item.Prefix)[len(prefix):], "/")
+			if _, ok := deleted[name]; !ok {
+				return false, nil
+			}
+		}
+		if !resp.IsTruncated || resp.NextContinuationToken == nil {
+			break
+		}
+		token = resp.NextContinuationToken
+	}
+	inode.mu.Lock()
+	defer inode.mu.Unlock()
+	return !inode.hasLiveChild(), nil
+}
+
+// hasLiveChild reports whether the directory has an in-memory child that has
+// not been deleted or invalidated.
+// LOCKS_REQUIRED(inode.mu)
+func (inode *Inode) hasLiveChild() bool {
+	for _, child := range inode.dir.Children {
+		state := atomic.LoadInt32(&child.CacheState)
+		if state != ST_DEAD && state != ST_DELETED {
+			return true
+		}
+	}
+	return false
 }
 
 // LOCKS_REQUIRED(inode.Parent.mu)
@@ -1602,7 +1655,7 @@ func (parent *Inode) Rename(from string, newParent *Inode, to string) (err error
 			if !toInode.isDir() {
 				return syscall.ENOTDIR
 			}
-			toEmpty, err := toInode.isEmptyDir()
+			toEmpty, err := toInode.isEmptyDirFast()
 			if err != nil {
 				return err
 			}
