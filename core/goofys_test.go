@@ -1,6 +1,3 @@
-Warning: truncated output (original token count: 20331)
-Total output lines: 3149
-
 // Copyright 2015 - 2017 Ka-Hing Cheung
 // Copyright 2021 Yandex LLC
 //
@@ -1577,7 +1574,65 @@ func (s *GoofysTest) setS3(back StorageBackend) StorageBackend {
 	old := dir.cloud
 	if back == nil {
 		back = StorageBackendInitError{
-			fmt.Errorf("cloud disabled…331 tokens truncated…rt(err, IsNil)
+			fmt.Errorf("cloud disabled"),
+			*dir.cloud.Capabilities(),
+		}
+	}
+	dir.cloud = back
+	return old
+}
+
+func (s *GoofysTest) TestWriteAnonymous(t *C) {
+	s.anonymous(t)
+	s.fs.flags.StatCacheTTL = 1 * time.Minute
+
+	fileName := "test"
+
+	in, fh, err := s.getRoot(t).Create(fileName)
+	t.Assert(err, IsNil)
+
+	err = in.SyncFile()
+	t.Assert(mapAwsError(err), Equals, syscall.EACCES)
+
+	fh.Release()
+}
+
+func (s *GoofysTest) TestIssue156(t *C) {
+	_, err := s.fs.LookupPath("\xae\x8a-")
+	// S3Proxy and aws s3 return different errors
+	// https://github.com/andrewgaul/s3proxy/issues/201
+	t.Assert(err, NotNil)
+}
+
+func (s *GoofysTest) TestIssue162(t *C) {
+	if s.azurite {
+		t.Skip("https://github.com/Azure/Azurite/issues/221")
+	}
+
+	params := &PutBlobInput{
+		Key:  "dir1/l├â┬╢r 006.jpg",
+		Body: bytes.NewReader([]byte("foo")),
+		Size: PUInt64(3),
+	}
+	_, err := s.cloud.PutBlob(params)
+	t.Assert(err, IsNil)
+
+	dir, err := s.fs.LookupPath("dir1")
+	t.Assert(err, IsNil)
+
+	_, err = s.fs.LookupPath("dir1/l├â┬╢r 006.jpg")
+	t.Assert(err, IsNil)
+	toInode, err := s.fs.LookupPath("dir1/myfile.jpg")
+	if err != nil {
+		t.Assert(err, Equals, syscall.ENOENT)
+	} else {
+		err = s.getRoot(t).Unlink("dir1/myfile.jpg")
+		t.Assert(err, IsNil)
+		err = toInode.SyncFile()
+		t.Assert(err, IsNil)
+	}
+	err = dir.Rename("l├â┬╢r 006.jpg", dir, "myfile.jpg")
+	t.Assert(err, IsNil)
 	toInode, err = s.fs.LookupPath("dir1/myfile.jpg")
 	t.Assert(err, IsNil)
 	err = toInode.SyncFile()
