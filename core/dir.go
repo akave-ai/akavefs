@@ -60,6 +60,7 @@ type DirInodeData struct {
 	DeletedChildren map[string]*Inode
 	Gaps            []*SlurpGap
 	handles         []*DirHandle
+	generation      uint64
 }
 
 // Returns the position of first char < '/' in `inp` after prefixLen + any continued '/' characters.
@@ -87,11 +88,15 @@ type DirHandle struct {
 	// or from the previous offset
 	lastExternalOffset fuseops.DirOffset
 	lastInternalOffset int
+	generation         uint64
 	lastName           string
 }
 
 func NewDirHandle(inode *Inode) (dh *DirHandle) {
-	dh = &DirHandle{inode: inode}
+	dh = &DirHandle{
+		inode:      inode,
+		generation: atomic.LoadUint64(&inode.dir.generation),
+	}
 	return
 }
 
@@ -396,6 +401,7 @@ func (inode *Inode) sealDir() {
 	} else {
 		inode.Attributes.Mtime, inode.Attributes.Ctime = inode.findChildMaxTime()
 	}
+	atomic.AddUint64(&inode.dir.generation, 1)
 	inode.removeExpired("")
 }
 
@@ -621,7 +627,11 @@ func (dh *DirHandle) listObjectsFlat() (start string, err error) {
 			dh.inode.dir.listMarker = lastName
 		}
 	} else {
+		dh.mu.Unlock()
 		dh.inode.sealDir()
+		generation := atomic.LoadUint64(&dh.inode.dir.generation)
+		dh.mu.Lock()
+		dh.generation = generation
 	}
 
 	dh.inode.mu.Unlock()
@@ -632,6 +642,11 @@ func (dh *DirHandle) listObjectsFlat() (start string, err error) {
 // LOCKS_REQUIRED(dh.mu)
 // LOCKS_REQUIRED(dh.inode.mu)
 func (dh *DirHandle) checkDirPosition() {
+	if generation := atomic.LoadUint64(&dh.inode.dir.generation); dh.generation != generation {
+		dh.lastInternalOffset = -1
+		dh.generation = generation
+	}
+
 	if dh.lastInternalOffset < 0 {
 		parent := dh.inode
 		// Directory position invalidated, try to find it again using lastName
@@ -687,11 +702,16 @@ func (dh *DirHandle) loadListing() error {
 	//    token
 
 	if useSlurp {
+		generation := atomic.LoadUint64(&parent.dir.generation)
 		parent.mu.Unlock()
 		dh.mu.Unlock()
 		done, err := parent.slurpOnce(true)
 		dh.mu.Lock()
 		parent.mu.Lock()
+		if current := atomic.LoadUint64(&parent.dir.generation); current != generation {
+			dh.generation = current
+			dh.lastInternalOffset = -1
+		}
 		if err != nil {
 			return err
 		}
@@ -705,12 +725,18 @@ func (dh *DirHandle) loadListing() error {
 
 	loaded, startMarker := false, ""
 	for parent.dir.lastFromCloud == nil && !parent.dir.listDone {
+		generation := atomic.LoadUint64(&parent.dir.generation)
 		parent.mu.Unlock()
 		start, err := dh.listObjectsFlat()
 		if !loaded {
 			loaded, startMarker = true, start
 		}
 		parent.mu.Lock()
+		if current := atomic.LoadUint64(&parent.dir.generation); current != generation {
+			dh.generation = current
+			dh.lastInternalOffset = -1
+			startMarker = ""
+		}
 		if err != nil {
 			return err
 		}
@@ -751,6 +777,7 @@ func (dh *DirHandle) Seek(newOffset fuseops.DirOffset) {
 		dh.lastExternalOffset = 0
 		dh.lastInternalOffset = 0
 		dh.lastName = ""
+		dh.generation = atomic.LoadUint64(&dh.inode.dir.generation)
 	}
 }
 
@@ -1001,11 +1028,7 @@ func (parent *Inode) removeChildUnlocked(inode *Inode) {
 			parent.FullName(), inode.Name, i))
 	}
 
-	// POSIX allows parallel readdir() and modifications,
-	// so preserve position of all directory handles
-	for _, dh := range parent.dir.handles {
-		dh.lastInternalOffset = -1
-	}
+	atomic.AddUint64(&parent.dir.generation, 1)
 	// >= because we use the "last open dir" as the "next" one
 	if parent.dir.lastOpenDirIdx >= i {
 		parent.dir.lastOpenDirIdx--
@@ -1035,11 +1058,7 @@ func (parent *Inode) removeAllChildrenUnlocked() {
 		child.DeRef(1)
 		child.mu.Unlock()
 	}
-	// POSIX allows parallel readdir() and modifications,
-	// so reset position of all directory handles
-	for _, dh := range parent.dir.handles {
-		dh.lastInternalOffset = -1
-	}
+	atomic.AddUint64(&parent.dir.generation, 1)
 	parent.dir.Children = nil
 }
 
@@ -1089,11 +1108,7 @@ func (parent *Inode) insertChildUnlocked(inode *Inode) {
 			panic(fmt.Sprintf("double insert of %v", parent.getChildName(inode.Name)))
 		}
 
-		// POSIX allows parallel readdir() and modifications,
-		// so preserve position of all directory handles
-		for _, dh := range parent.dir.handles {
-			dh.lastInternalOffset = -1
-		}
+		atomic.AddUint64(&parent.dir.generation, 1)
 		if parent.dir.lastOpenDirIdx >= i {
 			parent.dir.lastOpenDirIdx++
 		}
