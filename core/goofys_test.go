@@ -275,6 +275,25 @@ func (s *GoofysTest) TestReadDir(t *C) {
 	s.assertHasEntries(t, in, []string{"file4"})
 }
 
+func (s *GoofysTest) TestRefreshInodeCacheRemovesCurrentChildForStaleInode(t *C) {
+	root := s.getRoot(t)
+	current, err := root.LookUp("file1", false)
+	t.Assert(err, IsNil)
+
+	stale := NewInode(s.fs, root, current.Name)
+	stale.Id = current.Id
+	s.fs.mu.Lock()
+	s.fs.inodes[stale.Id] = stale
+	s.fs.mu.Unlock()
+
+	s.removeBlob(s.cloud, t, current.Name)
+	t.Assert(s.fs.RefreshInodeCache(stale), IsNil)
+
+	root.mu.Lock()
+	t.Assert(root.findChildUnlocked(current.Name), IsNil)
+	root.mu.Unlock()
+}
+
 func (s *GoofysTest) TestReadFiles(t *C) {
 	parent := s.getRoot(t)
 	dh := parent.OpenDir()
