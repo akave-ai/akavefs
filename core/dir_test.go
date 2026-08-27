@@ -1,6 +1,8 @@
 package core
 
 import (
+	"syscall"
+
 	. "gopkg.in/check.v1"
 
 	"github.com/yandex-cloud/geesefs/core/cfg"
@@ -21,6 +23,50 @@ func (s *DirTest) TestLocateLtSlash(t *C) {
 	t.Assert(locateLtSlash("w-o-w/w-o-w", 6), Equals, 7)
 	t.Assert(locateLtSlash("w-o-w///w.jpg", 6), Equals, 9)
 	t.Assert(locateLtSlash("w-o-w//.hidden", 6), Equals, -1)
+}
+
+func (s *DirTest) TestLookUpInodeMaybeDirConcurrentResults(t *C) {
+	flags := cfg.DefaultFlags()
+	fs := &Goofys{flags: flags}
+
+	for i := 0; i < 1000; i++ {
+		started := make(chan struct{}, 3)
+		release := make(chan struct{})
+		cloud := &TestBackend{
+			HeadBlobFunc: func(param *HeadBlobInput) (*HeadBlobOutput, error) {
+				started <- struct{}{}
+				<-release
+				return nil, syscall.ENOENT
+			},
+			ListBlobsFunc: func(param *ListBlobsInput) (*ListBlobsOutput, error) {
+				started <- struct{}{}
+				<-release
+				return &ListBlobsOutput{
+					Items: []BlobItemOutput{{Key: PString("child/entry")}},
+				}, nil
+			},
+		}
+		parent := &Inode{
+			fs:  fs,
+			dir: &DirInodeData{cloud: cloud},
+		}
+		result := make(chan *BlobItemOutput, 1)
+		errs := make(chan error, 1)
+		go func() {
+			item, err := parent.LookUpInodeMaybeDir("child")
+			result <- item
+			errs <- err
+		}()
+
+		for n := 0; n < cap(started); n++ {
+			<-started
+		}
+		close(release)
+
+		item, err := <-result, <-errs
+		t.Assert(err, IsNil)
+		t.Assert(NilStr(item.Key), Equals, "child/entry")
+	}
 }
 
 func (s *DirTest) TestIntelligentListCut(t *C) {
