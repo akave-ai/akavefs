@@ -926,7 +926,7 @@ func (fs *Goofys) RefreshInodeCache(inode *Inode) error {
 		}
 		return mappedErr
 	}
-	inode, err := parent.recheckInode(inode, name)
+	inode, err := parent.recheckInodeByName(name)
 	mappedErr = mapAwsError(err)
 	if mappedErr == syscall.ENOENT {
 		notifications = append(notifications, &fuseops.NotifyDelete{

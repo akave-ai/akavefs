@@ -1954,6 +1954,21 @@ func (parent *Inode) recheckInode(inode *Inode, name string) (newInode *Inode, e
 	return newInode, nil
 }
 
+func (parent *Inode) recheckInodeByName(name string) (newInode *Inode, err error) {
+	parent.mu.Lock()
+	current := parent.findChildUnlocked(name)
+	parent.mu.Unlock()
+
+	newInode, err = parent.LookUp(name, current == nil && !parent.fs.flags.NoPreloadDir)
+	if err != nil {
+		if current != nil {
+			parent.removeChild(current)
+		}
+		return nil, err
+	}
+	return newInode, nil
+}
+
 func (parent *Inode) LookUp(name string, doSlurp bool) (*Inode, error) {
 	_, parentKey := parent.cloud()
 	key := appendChildName(parentKey, name)
