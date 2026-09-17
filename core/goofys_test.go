@@ -279,9 +279,11 @@ func (s *GoofysTest) TestRefreshInodeCacheRemovesCurrentChildForStaleInode(t *C)
 	root := s.getRoot(t)
 	current, err := root.LookUp("file1", false)
 	t.Assert(err, IsNil)
+	t.Assert(current, NotNil)
 
 	stale := NewInode(s.fs, root, current.Name)
 	stale.Id = current.Id
+	// Not read by RefreshInodeCache: registers the stale inode as the kernel would still see it, for scenario fidelity.
 	s.fs.mu.Lock()
 	s.fs.inodes[stale.Id] = stale
 	s.fs.mu.Unlock()
