@@ -296,6 +296,146 @@ func (s *GoofysTest) TestRefreshInodeCacheRemovesCurrentChildForStaleInode(t *C)
 	root.mu.Unlock()
 }
 
+func (s *GoofysTest) TestRefreshInodeCacheNotifiesCurrentChildForStaleInodeNoCloud(t *C) {
+	var err error
+
+	flags := cfg.DefaultFlags()
+
+	// Every object is missing. The counters are under mu because
+	// LookUpInodeMaybeDir calls the backend from goroutines.
+	var mu sync.Mutex
+	var heads, slurps int
+	backend := &TestBackend{
+		err: syscall.ENOSYS,
+		HeadBlobFunc: func(param *HeadBlobInput) (*HeadBlobOutput, error) {
+			mu.Lock()
+			heads++
+			mu.Unlock()
+			return nil, syscall.ENOENT
+		},
+		ListBlobsFunc: func(param *ListBlobsInput) (*ListBlobsOutput, error) {
+			// LookUpInodeMaybeDir always lists with Delimiter "/", so only a
+			// slurp lists without one.
+			if param.Delimiter == nil {
+				mu.Lock()
+				slurps++
+				mu.Unlock()
+			}
+			return &ListBlobsOutput{}, nil
+		},
+	}
+	s.cloud = backend
+	s.fs, err = newGoofys(context.Background(), "test", flags, func(string, *cfg.FlagStorage) (StorageBackend, error) {
+		return backend, nil
+	})
+	t.Assert(err, IsNil)
+
+	var notes []interface{}
+	s.fs.NotifyCallback = func(n []interface{}) { notes = append(notes, n...) }
+
+	root := s.getRoot(t)
+	root.mu.Lock()
+	current := NewInode(s.fs, root, "file1")
+	s.fs.insertInode(root, current)
+	root.mu.Unlock()
+	current.mu.Lock()
+	currentId := current.Id
+	current.mu.Unlock()
+
+	stale := NewInode(s.fs, root, "file1")
+	// A distinct id is what shows which inode NotifyDelete names.
+	stale.Id = currentId + 1000
+
+	t.Assert(s.fs.RefreshInodeCache(stale), IsNil)
+
+	t.Assert(root.findChild("file1") == nil, Equals, true)
+	t.Assert(len(notes), Equals, 1)
+	del, ok := notes[0].(*fuseops.NotifyDelete)
+	t.Assert(ok, Equals, true)
+	t.Assert(del.Child, Equals, currentId)
+
+	mu.Lock()
+	// This path never slurps, as on master.
+	t.Assert(slurps, Equals, 0)
+	mu.Unlock()
+}
+
+func (s *GoofysTest) TestRefreshInodeCacheKeepsDirtyCurrentChildForStaleInodeNoCloud(t *C) {
+	var err error
+
+	flags := cfg.DefaultFlags()
+
+	// Every object is missing. The counters are under mu because
+	// LookUpInodeMaybeDir calls the backend from goroutines.
+	var mu sync.Mutex
+	var heads, slurps int
+	backend := &TestBackend{
+		err: syscall.ENOSYS,
+		HeadBlobFunc: func(param *HeadBlobInput) (*HeadBlobOutput, error) {
+			mu.Lock()
+			heads++
+			mu.Unlock()
+			return nil, syscall.ENOENT
+		},
+		ListBlobsFunc: func(param *ListBlobsInput) (*ListBlobsOutput, error) {
+			// LookUpInodeMaybeDir always lists with Delimiter "/", so only a
+			// slurp lists without one.
+			if param.Delimiter == nil {
+				mu.Lock()
+				slurps++
+				mu.Unlock()
+			}
+			return &ListBlobsOutput{}, nil
+		},
+	}
+	s.cloud = backend
+	s.fs, err = newGoofys(context.Background(), "test", flags, func(string, *cfg.FlagStorage) (StorageBackend, error) {
+		return backend, nil
+	})
+	t.Assert(err, IsNil)
+
+	var notes []interface{}
+	s.fs.NotifyCallback = func(n []interface{}) { notes = append(notes, n...) }
+
+	root := s.getRoot(t)
+	root.mu.Lock()
+	current := NewInode(s.fs, root, "file1")
+	s.fs.insertInode(root, current)
+	root.mu.Unlock()
+	current.mu.Lock()
+	currentId := current.Id
+	current.mu.Unlock()
+
+	stale := NewInode(s.fs, root, "file1")
+	// A distinct id is what makes this the stale case, not the current child.
+	stale.Id = currentId + 1000
+
+	// No WakeupFlusher: the flusher would try a PUT on a TestBackend that has
+	// no backend behind it.
+	current.mu.Lock()
+	current.SetCacheState(ST_CREATED)
+	current.mu.Unlock()
+
+	t.Assert(s.fs.RefreshInodeCache(stale), IsNil)
+
+	t.Assert(root.findChild("file1") == current, Equals, true)
+	t.Assert(len(notes), Equals, 1)
+	_, ok := notes[0].(*fuseops.NotifyInvalEntry)
+	t.Assert(ok, Equals, true)
+
+	mu.Lock()
+	// A dirty current child is not looked up: S3 does not hold its true state
+	// until it is flushed.
+	t.Assert(heads, Equals, 0)
+	mu.Unlock()
+
+	// Undo the dirty-queue entry and root's ModifiedChildren: NoCloud teardown
+	// does not call Shutdown.
+	current.mu.Lock()
+	current.SetCacheState(ST_CACHED)
+	current.mu.Unlock()
+}
+
 func (s *GoofysTest) TestReadFiles(t *C) {
 	parent := s.getRoot(t)
 	dh := parent.OpenDir()

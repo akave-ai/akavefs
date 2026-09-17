@@ -926,12 +926,38 @@ func (fs *Goofys) RefreshInodeCache(inode *Inode) error {
 		}
 		return mappedErr
 	}
-	inode, err := parent.recheckInodeByName(name)
+	// The inode the kernel handed us may be stale: removeChildUnlocked drops a
+	// child from parent.dir.Children without marking it ST_DEAD, so fs.inodes
+	// can still return the old object after a listing inserted a new one under
+	// the same name. Recheck the child registered now, and name it in
+	// NotifyDelete. Its Id is read under its lock because Ids can be reassigned.
+	// The target is never nil, so recheckInode never slurps on this path, as
+	// before, and removing a non-child is a no-op (removeChild's pointer check).
+	// A dirty current child is kept, as LookUpCached does: S3 does not hold its
+	// true state until it is flushed. The non-stale path is unchanged.
+	parent.mu.Lock()
+	target := parent.findChildUnlocked(name)
+	targetId := inodeId
+	skipRecheck := false
+	if target == nil {
+		target = inode
+	} else if target != inode {
+		target.mu.Lock()
+		targetId = target.Id
+		skipRecheck = atomic.LoadInt32(&target.CacheState) != ST_CACHED ||
+			target.isDir() && atomic.LoadInt64(&target.dir.ModifiedChildren) > 0
+		target.mu.Unlock()
+	}
+	parent.mu.Unlock()
+	var err error
+	if !skipRecheck {
+		_, err = parent.recheckInode(target, name)
+	}
 	mappedErr = mapAwsError(err)
 	if mappedErr == syscall.ENOENT {
 		notifications = append(notifications, &fuseops.NotifyDelete{
 			Parent: parentId,
-			Child:  inodeId,
+			Child:  targetId,
 			Name:   name,
 		})
 	} else {
