@@ -53,7 +53,7 @@ These mirror `.github/workflows/test.yml`. Use them, not commands you compose yo
 
 - Lint: `test -z "$(gofmt -l .)"` and `go vet ./...`
 - Build: `make build && ./akavefs --help`
-- Tests: `SAME_PROCESS_MOUNT=1 make run-test` and `make run-xfstests` — both need a JVM (s3proxy) and FUSE. Where those are unavailable, say so, and use the PR's GitHub Actions logs as the execution evidence.
+- Tests: `make run-test` and `make run-xfstests` — both need a JVM (s3proxy) and FUSE. Where those are unavailable, say so, and use the PR's GitHub Actions logs as the execution evidence.
 - Locally runnable without a JVM: `cd core && CGO_ENABLED=1 go test -race -count=1 -check.f 'DirTest' .` (`-check.f` only works from inside `core/`).
 
 ## Commits
