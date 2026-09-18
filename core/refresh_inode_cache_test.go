@@ -13,15 +13,22 @@ import (
 	"github.com/yandex-cloud/geesefs/core/cfg"
 )
 
+// Names for the asDir argument below, which is otherwise a bare bool at every
+// call site.
+const (
+	childIsFile = false
+	childIsDir  = true
+)
+
 // setUpStaleInodeRefreshNoCloud builds the fixture-free scenario the tests in
 // this file share: a Goofys over a TestBackend where every object is missing, a
 // root holding one clean child "file1" (current), and a second inode for the
 // same name carrying a different id (stale), which is what the kernel still
 // refers to after a listing replaced the child object.
 //
-// The backend hooks are closures inside this method on purpose: the race
-// signature allowlist these tests are judged by names this frame, so moving
-// them to another function would produce a signature it does not cover.
+// The backend hooks are closures inside this method on purpose: a -race report
+// is identified by the top frames of its two accesses, so a hook defined in
+// another function reports a frame with no baseline and reads as a new race.
 //
 // asDir makes current a directory before it is inserted, while nothing else can
 // reach it. onHead, when non-nil, runs inside HeadBlobFunc, which is how a test
@@ -96,7 +103,7 @@ func (s *GoofysTest) setUpStaleInodeRefreshNoCloud(t *C, asDir bool, onHead func
 }
 
 func (s *GoofysTest) TestRefreshInodeCacheRemovesCurrentChildNotifiesStaleIdNoCloud(t *C) {
-	root, _, stale, notes, counts := s.setUpStaleInodeRefreshNoCloud(t, false, nil, syscall.ENOENT)
+	root, _, stale, notes, counts := s.setUpStaleInodeRefreshNoCloud(t, childIsFile, nil, syscall.ENOENT)
 
 	t.Assert(s.fs.RefreshInodeCache(stale), IsNil)
 
@@ -114,7 +121,7 @@ func (s *GoofysTest) TestRefreshInodeCacheRemovesCurrentChildNotifiesStaleIdNoCl
 }
 
 func (s *GoofysTest) TestRefreshInodeCacheKeepsDirtyCurrentChildForStaleInodeNoCloud(t *C) {
-	root, current, stale, notes, counts := s.setUpStaleInodeRefreshNoCloud(t, false, nil, syscall.ENOENT)
+	root, current, stale, notes, counts := s.setUpStaleInodeRefreshNoCloud(t, childIsFile, nil, syscall.ENOENT)
 
 	// No WakeupFlusher: the flusher would try a PUT on a TestBackend that has
 	// no backend behind it.
@@ -136,7 +143,7 @@ func (s *GoofysTest) TestRefreshInodeCacheKeepsDirtyCurrentChildForStaleInodeNoC
 }
 
 func (s *GoofysTest) TestRefreshInodeCacheKeepsDirtyCurrentDirForStaleInodeNoCloud(t *C) {
-	root, current, stale, notes, counts := s.setUpStaleInodeRefreshNoCloud(t, true, nil, syscall.ENOENT)
+	root, current, stale, notes, counts := s.setUpStaleInodeRefreshNoCloud(t, childIsDir, nil, syscall.ENOENT)
 
 	current.mu.Lock() // insertInode is LOCKS_REQUIRED(parent.mu)
 	g := NewInode(s.fs, current, "g")
@@ -163,7 +170,7 @@ func (s *GoofysTest) TestRefreshInodeCacheKeepsDirtyCurrentDirForStaleInodeNoClo
 }
 
 func (s *GoofysTest) TestRemoveChildUnlessDirtyNoCloud(t *C) {
-	root, current, _, _, _ := s.setUpStaleInodeRefreshNoCloud(t, false, nil, syscall.ENOENT)
+	root, current, _, _, _ := s.setUpStaleInodeRefreshNoCloud(t, childIsFile, nil, syscall.ENOENT)
 
 	// Dirty at removal time: the child is kept.
 	current.mu.Lock() // SetCacheState is LOCKS_REQUIRED(inode.mu)
@@ -190,7 +197,10 @@ func (s *GoofysTest) TestRefreshInodeCacheKeepsChildDirtiedDuringLookupForStaleI
 	var root, current, stale *Inode
 	var notes *[]interface{}
 	var once sync.Once
-	root, current, stale, notes, _ = s.setUpStaleInodeRefreshNoCloud(t, false, func() {
+	// The hook closes over current before the setup assigns it, which is safe
+	// because the setup itself issues no HeadBlob: the hook first runs inside the
+	// RefreshInodeCache call below, long after the assignment.
+	root, current, stale, notes, _ = s.setUpStaleInodeRefreshNoCloud(t, childIsFile, func() {
 		once.Do(func() {
 			// LookUp holds no lock of its own while LookUpInodeMaybeDir runs, so
 			// taking the child's lock from the backend hook cannot deadlock.
@@ -212,7 +222,9 @@ func (s *GoofysTest) TestRefreshInodeCacheReturnsLookupErrorForChildDirtiedDurin
 	var root, current, stale *Inode
 	var notes *[]interface{}
 	var once sync.Once
-	root, current, stale, notes, _ = s.setUpStaleInodeRefreshNoCloud(t, false, func() {
+	// Safe for the same reason as the test above: the setup issues no HeadBlob,
+	// so the hook first runs well after current is assigned.
+	root, current, stale, notes, _ = s.setUpStaleInodeRefreshNoCloud(t, childIsFile, func() {
 		once.Do(func() {
 			current.mu.Lock()
 			current.SetCacheState(ST_MODIFIED)
@@ -222,6 +234,21 @@ func (s *GoofysTest) TestRefreshInodeCacheReturnsLookupErrorForChildDirtiedDurin
 
 	// Keeping the dirty child must not swallow a real backend error: only an
 	// ENOENT lookup clears it.
+	err := s.fs.RefreshInodeCache(stale)
+	t.Assert(err, Equals, syscall.EIO)
+	t.Assert(root.findChild("file1") == current, Equals, true)
+	t.Assert(len(*notes), Equals, 1)
+	_, ok := (*notes)[0].(*fuseops.NotifyInvalEntry)
+	t.Assert(ok, Equals, true)
+}
+
+func (s *GoofysTest) TestRefreshInodeCacheKeepsCleanChildOnLookupErrorForStaleInodeNoCloud(t *C) {
+	root, current, stale, notes, _ := s.setUpStaleInodeRefreshNoCloud(t, childIsFile, nil, syscall.EIO)
+
+	// current stays clean throughout. A lookup error that is not a not-found
+	// says nothing about whether the object exists, so a throttle or a 5xx must
+	// never unlink a valid child: the child is kept, the entry is only
+	// invalidated, and the backend error is returned.
 	err := s.fs.RefreshInodeCache(stale)
 	t.Assert(err, Equals, syscall.EIO)
 	t.Assert(root.findChild("file1") == current, Equals, true)

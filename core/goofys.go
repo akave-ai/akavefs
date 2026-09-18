@@ -926,39 +926,11 @@ func (fs *Goofys) RefreshInodeCache(inode *Inode) error {
 		}
 		return mappedErr
 	}
-	// The inode the kernel handed us may be stale: removeChildUnlocked drops a
-	// child from parent.dir.Children without marking it ST_DEAD, so fs.inodes
-	// can still return the old object after a listing inserted a new one under
-	// the same name. The kernel's dentry holds the id it looked up, i.e. the
-	// inode passed in, so NotifyDelete always names inodeId. When the registered
-	// child is a different object, look it up without a slurp (as before) and
-	// remove it only through removeChildUnlessDirty, which re-checks under the
-	// parent's and child's locks that it is still registered and still clean.
-	// A child that is dirty before or during the lookup is kept, as LookUpCached
-	// does: S3 does not hold its true state until it is flushed. Otherwise the
-	// path is master's recheckInode(inode, name).
-	parent.mu.Lock()
-	current := parent.findChildUnlocked(name)
-	dirty := false
-	if current != nil && current != inode {
-		current.mu.Lock()
-		dirty = atomic.LoadInt32(&current.CacheState) != ST_CACHED ||
-			current.isDir() && atomic.LoadInt64(&current.dir.ModifiedChildren) > 0
-		current.mu.Unlock()
-	}
-	parent.mu.Unlock()
-	var err error
-	if current == nil || current == inode {
-		_, err = parent.recheckInode(inode, name)
-	} else if !dirty {
-		_, err = parent.LookUp(name, false)
-		if err != nil && parent.removeChildUnlessDirty(current) && mapAwsError(err) == syscall.ENOENT {
-			// Became dirty during the lookup: keep it and only invalidate.
-			// Any other lookup error (e.g. S3 unreachable) is still returned;
-			// the child is kept and the NotifyInvalEntry branch runs (R6).
-			err = nil
-		}
-	}
+	// The inode the kernel handed us may be stale, so the child registered under
+	// name can be a different object; refreshCurrentChild sorts that out. The
+	// kernel's dentry holds the id it looked up, i.e. the inode passed in, so
+	// NotifyDelete below still names inodeId, as on master.
+	err := parent.refreshCurrentChild(inode, name)
 	mappedErr = mapAwsError(err)
 	if mappedErr == syscall.ENOENT {
 		notifications = append(notifications, &fuseops.NotifyDelete{
