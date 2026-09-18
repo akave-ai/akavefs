@@ -275,6 +275,66 @@ func (s *GoofysTest) TestReadDir(t *C) {
 	s.assertHasEntries(t, in, []string{"file4"})
 }
 
+func (s *GoofysTest) TestDirHandleGenerationInvalidation(t *C) {
+	root := s.getRoot(t)
+	dh := root.OpenDir()
+	defer dh.CloseDir()
+
+	s.readDirFully(t, dh)
+
+	dh.mu.Lock()
+	dh.lastInternalOffset = 4
+	dh.lastName = "file1"
+	dh.mu.Unlock()
+
+	root.mu.Lock()
+	file := root.findChildUnlocked("file1")
+	t.Assert(file, NotNil)
+	file.mu.Lock()
+	root.removeChildUnlocked(file)
+	file.mu.Unlock()
+	root.mu.Unlock()
+
+	dh.mu.Lock()
+	root.mu.Lock()
+	dh.checkDirPosition()
+	t.Assert(dh.generation, Equals, atomic.LoadUint64(&root.dir.generation))
+	t.Assert(dh.lastInternalOffset, Equals, 7)
+	root.mu.Unlock()
+	dh.mu.Unlock()
+}
+
+func (s *GoofysTest) TestDirHandleConcurrentInvalidation(t *C) {
+	root := s.getRoot(t)
+	dh := root.OpenDir()
+	defer dh.CloseDir()
+
+	var wg sync.WaitGroup
+	start := make(chan struct{})
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		<-start
+		for i := 0; i < 1000; i++ {
+			dh.mu.Lock()
+			dh.Next("file1")
+			dh.mu.Unlock()
+		}
+	}()
+
+	close(start)
+	for i := 0; i < 1000; i++ {
+		root.mu.Lock()
+		child := NewInode(s.fs, root, fmt.Sprintf("test-invalidation-%04d", i))
+		s.fs.insertInode(root, child)
+		child.mu.Lock()
+		root.removeChildUnlocked(child)
+		child.mu.Unlock()
+		root.mu.Unlock()
+	}
+	wg.Wait()
+}
+
 func (s *GoofysTest) TestReadFiles(t *C) {
 	parent := s.getRoot(t)
 	dh := parent.OpenDir()
