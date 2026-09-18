@@ -63,6 +63,8 @@ func (parent *Inode) refreshCurrentChild(inode *Inode, name string) error {
 	parent.mu.Unlock()
 
 	if current == nil || current == inode {
+		// Inherited path, left as is: unlike the stale path below, recheckInode
+		// removes the child on any lookup error, not only on a not-found.
 		_, err := parent.recheckInode(inode, name)
 		return err
 	}
@@ -96,7 +98,9 @@ func (parent *Inode) refreshCurrentChild(inode *Inode, name string) error {
 // CacheState only changes through SetCacheState, under inode.mu. The residual
 // window costs a detached subtree, not data: the directory is dropped from the
 // parent's children until the next listing re-creates it, while its dirty
-// descendants are still queued in fs.inodeQueue and still flush.
+// descendants are still queued in fs.inodeQueue and still flush. That re-listing
+// creates a different inode object for the name, so until a detached dirty
+// descendant has flushed, a traversal through the new object does not show it.
 //
 // LOCKS_EXCLUDED(parent.fs.mu)
 // LOCKS_EXCLUDED(parent.mu)

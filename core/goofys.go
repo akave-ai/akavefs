@@ -929,7 +929,9 @@ func (fs *Goofys) RefreshInodeCache(inode *Inode) error {
 	// The inode the kernel handed us may be stale, so the child registered under
 	// name can be a different object; refreshCurrentChild sorts that out. The
 	// kernel's dentry holds the id it looked up, i.e. the inode passed in, so
-	// NotifyDelete below still names inodeId, as on master.
+	// NotifyDelete below still names inodeId, as on master. When the inode is not
+	// stale, the inherited recheckInode still removes the child on any lookup
+	// error, not only a not-found; refreshCurrentChild says why that is kept.
 	err := parent.refreshCurrentChild(inode, name)
 	mappedErr = mapAwsError(err)
 	if mappedErr == syscall.ENOENT {

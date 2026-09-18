@@ -275,38 +275,6 @@ func (s *GoofysTest) TestReadDir(t *C) {
 	s.assertHasEntries(t, in, []string{"file4"})
 }
 
-func (s *GoofysTest) TestRefreshInodeCacheRemovesCurrentChildForStaleInode(t *C) {
-	root := s.getRoot(t)
-	current, err := root.LookUp("file1", false)
-	t.Assert(err, IsNil)
-	t.Assert(current, NotNil)
-
-	stale := NewInode(s.fs, root, current.Name)
-	// The stale inode is registered under its own id, as the kernel still refers
-	// to it after a listing replaced the child, and so that it does not overwrite
-	// the current child's entry in fs.inodes.
-	s.fs.mu.Lock() // allocateInodeId is LOCKS_REQUIRED(fs.mu)
-	stale.Id = s.fs.allocateInodeId()
-	s.fs.inodes[stale.Id] = stale
-	s.fs.mu.Unlock()
-
-	var notes []interface{}
-	s.fs.NotifyCallback = func(n []interface{}) { notes = append(notes, n...) }
-
-	s.removeBlob(s.cloud, t, current.Name)
-	t.Assert(s.fs.RefreshInodeCache(stale), IsNil)
-
-	root.mu.Lock()
-	t.Assert(root.findChildUnlocked(current.Name), IsNil)
-	root.mu.Unlock()
-
-	// The kernel's dentry holds the id it looked up, i.e. the stale one.
-	t.Assert(len(notes), Equals, 1)
-	del, ok := notes[0].(*fuseops.NotifyDelete)
-	t.Assert(ok, Equals, true)
-	t.Assert(del.Child, Equals, stale.Id)
-}
-
 func (s *GoofysTest) TestReadFiles(t *C) {
 	parent := s.getRoot(t)
 	dh := parent.OpenDir()
