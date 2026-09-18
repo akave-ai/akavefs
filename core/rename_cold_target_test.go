@@ -139,16 +139,24 @@ func (s *GoofysTest) renameColdTargetSetUp(t *C, keys ...string) (dir2 *Inode, f
 // renameColdTargetWithin runs dir2.Rename(from -> to) and fails the test if it does not
 // return within renameColdTargetTimeout. On timeout the Rename goroutine stays
 // blocked forever: a sync.Mutex wait cannot be cancelled, so it keeps holding
-// the root, dir2 and a_src locks of this test's private fs. Nothing else can
-// reach that fs: s.fs and s.cloud are replaced by the next test, and
-// TearDownTest does not touch the fs of a NoCloud test.
-func renameColdTargetWithin(t *C, dir2 *Inode, from, to string) error {
+// the root, dir2 and a_src locks of this test's private fs. Later tests cannot
+// reach those locks because nothing outside that fs refers to it any more:
+// the goroutine captures only dir2, the test's locals die with the test, and
+// s.fs and s.cloud are cleared before the test fails. Only the fs's own
+// background goroutines still use it, and they can block on it harmlessly.
+func (s *GoofysTest) renameColdTargetWithin(t *C, dir2 *Inode, from, to string) error {
 	done := make(chan error, 1) // buffered: a late return must not block
 	go func() { done <- dir2.Rename(from, dir2, to) }()
 	select {
 	case err := <-done:
 		return err
 	case <-time.After(renameColdTargetTimeout):
+		// Waiting for the next test to overwrite s.fs is not enough: if a
+		// cloud test's SetUpTest fails before it assigns s.fs, its
+		// TearDownTest calls SyncTree on whatever s.fs still holds, which
+		// would block on the root lock held here and hang the whole binary
+		// until PerTestTimeout. TearDownTest skips a nil s.fs.
+		s.fs, s.cloud = nil, nil
 		t.Fatalf("Rename(%q -> %q) under a nested parent deadlocked on a cold destination (no return within %v)",
 			from, to, renameColdTargetTimeout)
 		return nil
@@ -160,11 +168,15 @@ func (s *GoofysTest) TestRenameNestedColdEmptyTargetNoCloud(t *C) {
 	// "dir2/z_sib/f2" sorts after the target: before c0f0e84 the slurp that
 	// starts after "dir2/a_tgt/" returned it and descended into dir2.
 	dir2, fake := s.renameColdTargetSetUp(t, "dir2/a_src/", "dir2/a_tgt/", "dir2/z_sib/f2")
+	// Unlock before asserting: a failed Assert ends the test goroutine, and
+	// dir2.mu would otherwise stay held.
 	dir2.mu.Lock()
-	srcId := dir2.findChildUnlocked("a_src").Id
+	src := dir2.findChildUnlocked("a_src")
 	dir2.mu.Unlock()
+	t.Assert(src, NotNil)
+	srcId := src.Id
 
-	t.Assert(renameColdTargetWithin(t, dir2, "a_src", "a_tgt"), IsNil)
+	t.Assert(s.renameColdTargetWithin(t, dir2, "a_src", "a_tgt"), IsNil)
 	t.Assert(fake.listedPrefix("dir2/a_tgt/"), Equals, true)
 
 	dir2.mu.Lock()
@@ -179,12 +191,16 @@ func (s *GoofysTest) TestRenameNestedColdEmptyTargetNoCloud(t *C) {
 func (s *GoofysTest) TestRenameNestedColdNonEmptyTargetNoCloud(t *C) {
 	// "dir2/a_tgt/g" makes the target non-empty, so POSIX requires ENOTEMPTY.
 	dir2, fake := s.renameColdTargetSetUp(t, "dir2/a_src/", "dir2/a_tgt/g", "dir2/z_sib/f2")
+	// Unlock before asserting, for the same reason as in the empty case.
 	dir2.mu.Lock()
-	srcId := dir2.findChildUnlocked("a_src").Id
-	tgtId := dir2.findChildUnlocked("a_tgt").Id
+	src := dir2.findChildUnlocked("a_src")
+	tgt := dir2.findChildUnlocked("a_tgt")
 	dir2.mu.Unlock()
+	t.Assert(src, NotNil)
+	t.Assert(tgt, NotNil)
+	srcId, tgtId := src.Id, tgt.Id
 
-	t.Assert(renameColdTargetWithin(t, dir2, "a_src", "a_tgt"), Equals, syscall.ENOTEMPTY)
+	t.Assert(s.renameColdTargetWithin(t, dir2, "a_src", "a_tgt"), Equals, syscall.ENOTEMPTY)
 	t.Assert(fake.listedPrefix("dir2/a_tgt/"), Equals, true)
 
 	// A refused rename must leave both directories where they were.
