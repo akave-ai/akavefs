@@ -929,35 +929,41 @@ func (fs *Goofys) RefreshInodeCache(inode *Inode) error {
 	// The inode the kernel handed us may be stale: removeChildUnlocked drops a
 	// child from parent.dir.Children without marking it ST_DEAD, so fs.inodes
 	// can still return the old object after a listing inserted a new one under
-	// the same name. Recheck the child registered now, and name it in
-	// NotifyDelete. Its Id is read under its lock because Ids can be reassigned.
-	// The target is never nil, so recheckInode never slurps on this path, as
-	// before, and removing a non-child is a no-op (removeChild's pointer check).
-	// A dirty current child is kept, as LookUpCached does: S3 does not hold its
-	// true state until it is flushed. The non-stale path is unchanged.
+	// the same name. The kernel's dentry holds the id it looked up, i.e. the
+	// inode passed in, so NotifyDelete always names inodeId. When the registered
+	// child is a different object, look it up without a slurp (as before) and
+	// remove it only through removeChildUnlessDirty, which re-checks under the
+	// parent's and child's locks that it is still registered and still clean.
+	// A child that is dirty before or during the lookup is kept, as LookUpCached
+	// does: S3 does not hold its true state until it is flushed. Otherwise the
+	// path is master's recheckInode(inode, name).
 	parent.mu.Lock()
-	target := parent.findChildUnlocked(name)
-	targetId := inodeId
-	skipRecheck := false
-	if target == nil {
-		target = inode
-	} else if target != inode {
-		target.mu.Lock()
-		targetId = target.Id
-		skipRecheck = atomic.LoadInt32(&target.CacheState) != ST_CACHED ||
-			target.isDir() && atomic.LoadInt64(&target.dir.ModifiedChildren) > 0
-		target.mu.Unlock()
+	current := parent.findChildUnlocked(name)
+	dirty := false
+	if current != nil && current != inode {
+		current.mu.Lock()
+		dirty = atomic.LoadInt32(&current.CacheState) != ST_CACHED ||
+			current.isDir() && atomic.LoadInt64(&current.dir.ModifiedChildren) > 0
+		current.mu.Unlock()
 	}
 	parent.mu.Unlock()
 	var err error
-	if !skipRecheck {
-		_, err = parent.recheckInode(target, name)
+	if current == nil || current == inode {
+		_, err = parent.recheckInode(inode, name)
+	} else if !dirty {
+		_, err = parent.LookUp(name, false)
+		if err != nil && parent.removeChildUnlessDirty(current) && mapAwsError(err) == syscall.ENOENT {
+			// Became dirty during the lookup: keep it and only invalidate.
+			// Any other lookup error (e.g. S3 unreachable) is still returned;
+			// the child is kept and the NotifyInvalEntry branch runs (R6).
+			err = nil
+		}
 	}
 	mappedErr = mapAwsError(err)
 	if mappedErr == syscall.ENOENT {
 		notifications = append(notifications, &fuseops.NotifyDelete{
 			Parent: parentId,
-			Child:  targetId,
+			Child:  inodeId,
 			Name:   name,
 		})
 	} else {

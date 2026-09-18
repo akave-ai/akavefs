@@ -1064,6 +1064,44 @@ func (parent *Inode) removeChild(inode *Inode) {
 	return
 }
 
+// removeChildUnlessDirty removes inode from parent's children only if it is
+// still the child registered under its name and is not dirty, both checked
+// under parent.mu and inode.mu so that nothing can dirty it between the check
+// and the removal. It exists for RefreshInodeCache's stale-inode path, which
+// removes a child the kernel did not hand it; removeChild removes regardless
+// of state. The predicate matches LookUpCached's. Returns true when the child
+// was kept because it is dirty.
+//
+// NOTE: for a directory this does not fully close the window. Its
+// ModifiedChildren is changed by a plain atomic add in addModified, which
+// holds no lock this function can take: a write or open under the directory
+// holds only the written inode's own mu (WriteFile, OpenFile). So a directory
+// can become dirty after the check below and still be removed. The file half
+// is closed: CacheState only changes through SetCacheState, under inode.mu.
+// LOCKS_EXCLUDED(parent.fs.mu)
+// LOCKS_EXCLUDED(parent.mu)
+// LOCKS_EXCLUDED(inode.mu)
+func (parent *Inode) removeChildUnlessDirty(inode *Inode) (dirty bool) {
+	parent.mu.Lock()
+	defer parent.mu.Unlock()
+
+	l := len(parent.dir.Children)
+	i := sort.Search(l, parent.findInodeFunc(inode.Name))
+	if i >= l || parent.dir.Children[i] != inode {
+		return false
+	}
+
+	inode.mu.Lock()
+	defer inode.mu.Unlock()
+
+	if atomic.LoadInt32(&inode.CacheState) != ST_CACHED ||
+		inode.isDir() && atomic.LoadInt64(&inode.dir.ModifiedChildren) > 0 {
+		return true
+	}
+	parent.removeChildUnlocked(inode)
+	return false
+}
+
 func (parent *Inode) insertChild(inode *Inode) {
 	parent.mu.Lock()
 	defer parent.mu.Unlock()
