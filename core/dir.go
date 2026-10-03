@@ -2058,8 +2058,12 @@ func (parent *Inode) LookUpInodeMaybeDir(name string) (*BlobItemOutput, error) {
 	for {
 		n++
 		go func() {
-			object, err := cloud.HeadBlob(&HeadBlobInput{Key: key})
-			results <- lookupResult{kind: lookupObject, object: object, err: err}
+			// Named apart from the outer object/dirObject/prefixList, which
+			// stay in scope here: receiveResult is their only writer, and a
+			// shadowing name would let a later edit silently restore the
+			// cross-goroutine write this channel removes.
+			obj, err := cloud.HeadBlob(&HeadBlobInput{Key: key})
+			results <- lookupResult{kind: lookupObject, object: obj, err: err}
 		}()
 		if cloud.Capabilities().DirBlob {
 			receiveResult()
@@ -2075,8 +2079,8 @@ func (parent *Inode) LookUpInodeMaybeDir(name string) (*BlobItemOutput, error) {
 		if !parent.fs.flags.NoDirObject {
 			n++
 			go func() {
-				dirObject, err := cloud.HeadBlob(&HeadBlobInput{Key: key + "/"})
-				results <- lookupResult{kind: lookupDirObject, dirObject: dirObject, err: err}
+				dirObj, err := cloud.HeadBlob(&HeadBlobInput{Key: key + "/"})
+				results <- lookupResult{kind: lookupDirObject, dirObject: dirObj, err: err}
 			}()
 			if parent.fs.flags.Cheap {
 				receiveResult()
@@ -2089,12 +2093,12 @@ func (parent *Inode) LookUpInodeMaybeDir(name string) (*BlobItemOutput, error) {
 		if !parent.fs.flags.ExplicitDir {
 			n++
 			go func() {
-				prefixList, err := RetryListBlobs(parent.fs.flags, cloud, &ListBlobsInput{
+				list, err := RetryListBlobs(parent.fs.flags, cloud, &ListBlobsInput{
 					Delimiter: PString("/"),
 					MaxKeys:   PUInt32(1),
 					Prefix:    PString(key + "/"),
 				})
-				results <- lookupResult{kind: lookupPrefixList, prefixList: prefixList, err: err}
+				results <- lookupResult{kind: lookupPrefixList, prefixList: list, err: err}
 			}()
 			if parent.fs.flags.Cheap {
 				receiveResult()
@@ -2109,10 +2113,8 @@ func (parent *Inode) LookUpInodeMaybeDir(name string) (*BlobItemOutput, error) {
 	// dirObject > prefixList ladder below is a tiebreak within one iteration,
 	// not a global priority. For a key that exists both as an object and as a
 	// directory prefix the answer therefore depends on which probe finishes
-	// first. Measured on 2026-09-23 over 2000 barrier-released lookups, the
-	// pre-fix code already returned the prefix answer 1877 times versus 1874
-	// here, so this defines behaviour that was previously undefined rather
-	// than changing it.
+	// first, which defines behaviour that the unsynchronised read this replaced
+	// left undefined rather than changing it.
 	for n > 0 {
 		n--
 		if !cloud.Capabilities().DirBlob && !parent.fs.flags.Cheap {
