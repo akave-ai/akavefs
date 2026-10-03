@@ -10,147 +10,168 @@ import (
 	"github.com/yandex-cloud/geesefs/core/cfg"
 )
 
+// Everything in this file only guards under -race. It covers the removal of an
+// unsynchronised write, so the failure it detects is a data race and nothing
+// else: with master's core/dir.go, `go test -race` reports 21 races and exits 1,
+// while the same suite without -race -- which is the command CI runs today --
+// prints "OK: 5 passed" and exits 0.
+//
 // LookUpInodeMaybeDir launches one probe per enabled lookup strategy:
 // HeadBlob(key), HeadBlob(key+"/") and the prefix LIST. All three run only while
 // the backend reports no DirBlob capability and Cheap, NoDirObject and
-// ExplicitDir are all off, so the barriers below are sized by
-// maybeDirLookupProbes and the tests assert those four facts rather than assume
-// them: a miscount would otherwise wait for a probe that never starts. The
-// maybeDirLookup prefix keeps both constants clear of upstream symbols: this is
-// package core, shared with every inherited file.
+// ExplicitDir are all off, so the barrier below is sized by maybeDirLookupProbes
+// and the helpers assert those four facts rather than assume them: a miscount
+// would otherwise wait for a probe that never starts. The maybeDirLookup prefix
+// keeps every name here clear of upstream symbols: this is package core, shared
+// with every inherited file.
 const maybeDirLookupProbes = 3
 
 // maybeDirLookupProbeTimeout only has to outlast a probe that is already
-// unblocked; it is ~2000x the measured per-iteration cost under -race, so it
-// cannot flake, and it exists purely to turn a probe miscount into a legible
-// failure instead of a hang.
+// unblocked. A barrier-released iteration costs ~0.4ms under -race (measured:
+// 3000 iterations in ~1.1s), so 30s cannot flake, and the bound exists purely to
+// turn a probe miscount into a legible failure instead of a hang.
 const maybeDirLookupProbeTimeout = 30 * time.Second
 
-// The three variants below each make one rung of the result ladder the only
-// usable answer, so the expected key is assertable whichever probe reports
-// first -- which is all the arrival-ordered priority permits. Between them they
-// cover the object, dirObject and prefixList routing in receiveResult.
+// maybeDirLookupIterations is how often each variant repeats its lookup. One
+// iteration already interleaves the probes, because they are released from a
+// barrier; the repetition is what makes the race detector see the window, and
+// what makes the probe census effective (see maybeDirLookupAssertNoExtraProbe).
+const maybeDirLookupIterations = 1000
 
-// Prefix-listing rung: both HeadBlobs are ENOENT and only the LIST answers.
-func (s *DirTest) TestLookUpInodeMaybeDirConcurrentResults(t *C) {
+// maybeDirLookupCase is the whole difference between the three variants: which
+// HeadBlob key answers, what the prefix LIST returns, and the key the lookup
+// must then produce. Each case makes exactly one rung of the result ladder the
+// only usable answer, so the expected key holds whichever probe reports first --
+// which is all the arrival-ordered priority permits a test to assert.
+type maybeDirLookupCase struct {
+	// headBlobHit is the one key whose HeadBlob succeeds; "" means both the
+	// object and the dir-object probe return ENOENT.
+	headBlobHit string
+	// listItem is the single item the prefix LIST returns; "" means it comes
+	// back empty, which is not a usable answer.
+	listItem string
+	// want is the key LookUpInodeMaybeDir must return.
+	want string
+}
+
+// maybeDirLookupFlags returns the default flags and asserts the three that
+// decide the probe count, before any barrier is sized by them.
+func maybeDirLookupFlags(t *C) *cfg.FlagStorage {
 	flags := cfg.DefaultFlags()
-	fs := &Goofys{flags: flags}
 	t.Assert(flags.Cheap, Equals, false)
 	t.Assert(flags.NoDirObject, Equals, false)
 	t.Assert(flags.ExplicitDir, Equals, false)
+	return flags
+}
 
-	for i := 0; i < 1000; i++ {
-		started := make(chan struct{}, maybeDirLookupProbes)
-		release := make(chan struct{})
-		// t.Fatalf unwinds with runtime.Goexit, which runs defers but skips the
-		// explicit release below, so a probe left waiting on release would leak
-		// once per failing iteration, taking the lookup goroutine with it.
-		// sync.OnceFunc makes closing on both paths safe; on the passing path
-		// the deferred call is a no-op left to run when the test returns.
-		releaseProbes := sync.OnceFunc(func() { close(release) })
-		defer releaseProbes()
+// maybeDirLookupRunIteration runs one barrier-released lookup of "child" against
+// tc's answers and checks what comes back. The three variants share it so the
+// barrier, the release and the probe census cannot drift apart between them. It
+// is one call per iteration on purpose: the deferred release then scopes to a
+// single iteration instead of accumulating one closure per repetition.
+func maybeDirLookupRunIteration(t *C, fs *Goofys, iteration int, tc maybeDirLookupCase) {
+	started := make(chan struct{}, maybeDirLookupProbes)
+	release := make(chan struct{})
+	// t.Fatalf unwinds with runtime.Goexit, which runs defers but skips the
+	// explicit release below, so a probe left waiting on release would leak once
+	// per failing iteration, taking the lookup goroutine with it. sync.OnceFunc
+	// makes closing on both paths safe.
+	releaseProbes := sync.OnceFunc(func() { close(release) })
+	defer releaseProbes()
 
-		cloud := &TestBackend{
-			HeadBlobFunc: func(param *HeadBlobInput) (*HeadBlobOutput, error) {
-				started <- struct{}{}
-				<-release
-				return nil, syscall.ENOENT
-			},
-			ListBlobsFunc: func(param *ListBlobsInput) (*ListBlobsOutput, error) {
-				started <- struct{}{}
-				<-release
-				return &ListBlobsOutput{
-					Items: []BlobItemOutput{{Key: PString("child/entry")}},
+	cloud := &TestBackend{
+		HeadBlobFunc: func(param *HeadBlobInput) (*HeadBlobOutput, error) {
+			started <- struct{}{}
+			<-release
+			if tc.headBlobHit != "" && param.Key == tc.headBlobHit {
+				return &HeadBlobOutput{
+					BlobItemOutput: BlobItemOutput{Key: PString(tc.headBlobHit)},
 				}, nil
-			},
-		}
-		t.Assert(cloud.Capabilities().DirBlob, Equals, false)
-		parent := &Inode{
-			fs:  fs,
-			dir: &DirInodeData{cloud: cloud},
-		}
-		result := make(chan *BlobItemOutput, 1)
-		errs := make(chan error, 1)
-		go func() {
-			item, err := parent.LookUpInodeMaybeDir("child")
-			result <- item
-			errs <- err
-		}()
-
-		for n := 0; n < maybeDirLookupProbes; n++ {
-			select {
-			case <-started:
-			case <-time.After(maybeDirLookupProbeTimeout):
-				t.Fatalf("iteration %d: %d of %d lookup probes started", i, n, maybeDirLookupProbes)
 			}
-		}
-		releaseProbes()
+			return nil, syscall.ENOENT
+		},
+		ListBlobsFunc: func(param *ListBlobsInput) (*ListBlobsOutput, error) {
+			started <- struct{}{}
+			<-release
+			if tc.listItem == "" {
+				return &ListBlobsOutput{}, nil
+			}
+			return &ListBlobsOutput{
+				Items: []BlobItemOutput{{Key: PString(tc.listItem)}},
+			}, nil
+		},
+	}
+	t.Assert(cloud.Capabilities().DirBlob, Equals, false)
+	parent := &Inode{
+		fs:  fs,
+		dir: &DirInodeData{cloud: cloud},
+	}
+	result := make(chan *BlobItemOutput, 1)
+	errs := make(chan error, 1)
+	go func() {
+		item, err := parent.LookUpInodeMaybeDir("child")
+		result <- item
+		errs <- err
+	}()
 
-		item, err := <-result, <-errs
-		t.Assert(err, IsNil)
-		t.Assert(NilStr(item.Key), Equals, "child/entry")
-		assertNoExtraLookupProbe(t, i, started)
+	for n := 0; n < maybeDirLookupProbes; n++ {
+		select {
+		case <-started:
+		case <-time.After(maybeDirLookupProbeTimeout):
+			t.Fatalf("iteration %d: %d of %d lookup probes started", iteration, n, maybeDirLookupProbes)
+		}
+	}
+	releaseProbes()
+
+	item, err := <-result, <-errs
+	t.Assert(err, IsNil)
+	t.Assert(NilStr(item.Key), Equals, tc.want)
+	maybeDirLookupAssertNoExtraProbe(t, iteration, started)
+}
+
+// maybeDirLookupAssertNoExtraProbe catches the drift the barrier cannot: the
+// barrier waits for maybeDirLookupProbes starts, so too few probes fail it,
+// while one too many would otherwise pass unnoticed.
+//
+// This is an aggregate check, not a per-iteration one, and the distinction
+// matters: the lookup can return on one buffered result while a later probe
+// goroutine is still between its go statement and its send, so an extra probe
+// may not have reached the channel yet and this receive can find nothing. Over
+// maybeDirLookupIterations repetitions at least one iteration observes it --
+// measured on a probe count of 2, every variant fails on iteration 0 -- but no
+// single iteration is guaranteed to. The receive stays non-blocking so the
+// passing path pays nothing; a bounded drain would not make one iteration
+// sufficient either, since no fixed wait outlasts every straggler.
+func maybeDirLookupAssertNoExtraProbe(t *C, iteration int, started <-chan struct{}) {
+	select {
+	case <-started:
+		t.Fatalf("iteration %d: more than %d lookup probes started", iteration, maybeDirLookupProbes)
+	default:
+	}
+}
+
+// Prefix-listing rung: both HeadBlobs are ENOENT and only the LIST answers.
+func (s *DirTest) TestLookUpInodeMaybeDirConcurrentResults(t *C) {
+	fs := &Goofys{flags: maybeDirLookupFlags(t)}
+
+	for i := 0; i < maybeDirLookupIterations; i++ {
+		maybeDirLookupRunIteration(t, fs, i, maybeDirLookupCase{
+			listItem: "child/entry",
+			want:     "child/entry",
+		})
 	}
 }
 
 // Object rung: HeadBlob(key) succeeds, HeadBlob(key+"/") is ENOENT and the LIST
 // comes back empty, so the object is the only usable answer.
 func (s *DirTest) TestLookUpInodeMaybeDirObjectResult(t *C) {
-	flags := cfg.DefaultFlags()
-	fs := &Goofys{flags: flags}
-	t.Assert(flags.Cheap, Equals, false)
-	t.Assert(flags.NoDirObject, Equals, false)
-	t.Assert(flags.ExplicitDir, Equals, false)
+	fs := &Goofys{flags: maybeDirLookupFlags(t)}
 
-	for i := 0; i < 1000; i++ {
-		started := make(chan struct{}, maybeDirLookupProbes)
-		release := make(chan struct{})
-		releaseProbes := sync.OnceFunc(func() { close(release) })
-		defer releaseProbes()
-
-		cloud := &TestBackend{
-			HeadBlobFunc: func(param *HeadBlobInput) (*HeadBlobOutput, error) {
-				started <- struct{}{}
-				<-release
-				if param.Key == "child" {
-					return &HeadBlobOutput{
-						BlobItemOutput: BlobItemOutput{Key: PString("child")},
-					}, nil
-				}
-				return nil, syscall.ENOENT
-			},
-			ListBlobsFunc: func(param *ListBlobsInput) (*ListBlobsOutput, error) {
-				started <- struct{}{}
-				<-release
-				return &ListBlobsOutput{}, nil
-			},
-		}
-		t.Assert(cloud.Capabilities().DirBlob, Equals, false)
-		parent := &Inode{
-			fs:  fs,
-			dir: &DirInodeData{cloud: cloud},
-		}
-		result := make(chan *BlobItemOutput, 1)
-		errs := make(chan error, 1)
-		go func() {
-			item, err := parent.LookUpInodeMaybeDir("child")
-			result <- item
-			errs <- err
-		}()
-
-		for n := 0; n < maybeDirLookupProbes; n++ {
-			select {
-			case <-started:
-			case <-time.After(maybeDirLookupProbeTimeout):
-				t.Fatalf("iteration %d: %d of %d lookup probes started", i, n, maybeDirLookupProbes)
-			}
-		}
-		releaseProbes()
-
-		item, err := <-result, <-errs
-		t.Assert(err, IsNil)
-		t.Assert(NilStr(item.Key), Equals, "child")
-		assertNoExtraLookupProbe(t, i, started)
+	for i := 0; i < maybeDirLookupIterations; i++ {
+		maybeDirLookupRunIteration(t, fs, i, maybeDirLookupCase{
+			headBlobHit: "child",
+			want:        "child",
+		})
 	}
 }
 
@@ -160,73 +181,12 @@ func (s *DirTest) TestLookUpInodeMaybeDirObjectResult(t *C) {
 // lookupDirObject case leaves the suite green and such a directory would
 // silently become ENOENT.
 func (s *DirTest) TestLookUpInodeMaybeDirDirObjectResult(t *C) {
-	flags := cfg.DefaultFlags()
-	fs := &Goofys{flags: flags}
-	t.Assert(flags.Cheap, Equals, false)
-	t.Assert(flags.NoDirObject, Equals, false)
-	t.Assert(flags.ExplicitDir, Equals, false)
+	fs := &Goofys{flags: maybeDirLookupFlags(t)}
 
-	for i := 0; i < 1000; i++ {
-		started := make(chan struct{}, maybeDirLookupProbes)
-		release := make(chan struct{})
-		releaseProbes := sync.OnceFunc(func() { close(release) })
-		defer releaseProbes()
-
-		cloud := &TestBackend{
-			HeadBlobFunc: func(param *HeadBlobInput) (*HeadBlobOutput, error) {
-				started <- struct{}{}
-				<-release
-				if param.Key == "child/" {
-					return &HeadBlobOutput{
-						BlobItemOutput: BlobItemOutput{Key: PString("child/")},
-					}, nil
-				}
-				return nil, syscall.ENOENT
-			},
-			ListBlobsFunc: func(param *ListBlobsInput) (*ListBlobsOutput, error) {
-				started <- struct{}{}
-				<-release
-				return &ListBlobsOutput{}, nil
-			},
-		}
-		t.Assert(cloud.Capabilities().DirBlob, Equals, false)
-		parent := &Inode{
-			fs:  fs,
-			dir: &DirInodeData{cloud: cloud},
-		}
-		result := make(chan *BlobItemOutput, 1)
-		errs := make(chan error, 1)
-		go func() {
-			item, err := parent.LookUpInodeMaybeDir("child")
-			result <- item
-			errs <- err
-		}()
-
-		for n := 0; n < maybeDirLookupProbes; n++ {
-			select {
-			case <-started:
-			case <-time.After(maybeDirLookupProbeTimeout):
-				t.Fatalf("iteration %d: %d of %d lookup probes started", i, n, maybeDirLookupProbes)
-			}
-		}
-		releaseProbes()
-
-		item, err := <-result, <-errs
-		t.Assert(err, IsNil)
-		t.Assert(NilStr(item.Key), Equals, "child/")
-		assertNoExtraLookupProbe(t, i, started)
-	}
-}
-
-// assertNoExtraLookupProbe catches the drift the barrier cannot: the barrier
-// waits for maybeDirLookupProbes starts, so too few probes fail it, but one too
-// many used to pass unnoticed. The lookup has returned by the time this runs,
-// so a probe it launched has already sent, and the receive stays non-blocking
-// to keep the check free on the passing path.
-func assertNoExtraLookupProbe(t *C, iteration int, started <-chan struct{}) {
-	select {
-	case <-started:
-		t.Fatalf("iteration %d: more than %d lookup probes started", iteration, maybeDirLookupProbes)
-	default:
+	for i := 0; i < maybeDirLookupIterations; i++ {
+		maybeDirLookupRunIteration(t, fs, i, maybeDirLookupCase{
+			headBlobHit: "child/",
+			want:        "child/",
+		})
 	}
 }
