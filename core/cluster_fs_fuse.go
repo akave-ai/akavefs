@@ -534,10 +534,7 @@ func (fs *ClusterFsFuse) OpenDir(ctx context.Context, op *fuseops.OpenDirOp) (er
 
 			// 2nd phase
 			fs.Goofys.mu.Lock()
-			dh := &DirHandle{
-				inode:      inode,
-				generation: atomic.LoadUint64(&inode.dir.generation),
-			}
+			dh := &DirHandle{inode: inode}
 			fs.Goofys.dirHandles[fuseops.HandleID(resp.HandleId)] = dh
 			fs.Goofys.mu.Unlock()
 
