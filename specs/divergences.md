@@ -74,7 +74,7 @@ a divergence updates `specs/` in the same pull request.
 ## working-agreement
 
 - **Status:** `ours — addition`
-- **Files:** `AGENTS.md`, `CLAUDE.md`, `specs/README.md`, `specs/divergences.md`, `specs/upstream-syncs.md`, `specs/stale-inode-refresh.md`, `specs/lookup-maybe-dir-race.md`, `specs/rename-cold-target.md`
+- **Files:** `AGENTS.md`, `CLAUDE.md`, `specs/README.md`, `specs/divergences.md`, `specs/upstream-syncs.md`, `specs/stale-inode-refresh.md`, `specs/lookup-maybe-dir-race.md`, `specs/rename-cold-target.md`, `specs/dir-handle-invalidation.md`
 - **Symbols:** none.
 - **Introduced by:** `AGENTS.md` and `CLAUDE.md` by commit `190a27a`, then edited by `d163a06` (in #7) and by #5 (`ddd4732`). The `specs/` folder by #13, which also edited `AGENTS.md`: the sync cadence, the rule to read `specs/` before any change, the "Defects" rule, and the sync rule's pointer to this register and to the sync log.
 - **Origin:** original.
@@ -178,3 +178,14 @@ a divergence updates `specs/` in the same pull request.
   ```
 - **On sync conflict:** The names themselves are the same strings on both sides, so they cause no conflict of their own; several of these files conflict for the reasons given in other entries. The risk runs the other way: a well-meant "finish the rename" change that touches the module path or the imports would create a divergence across the Go tree. Reject it unless there is an explicit decision, and if there is one, record it here as a new `branding` entry. If a sync brings in a new GeeseFS name, classify it with the commands above.
 - **Upstream status:** Not applicable to the first group, which uses upstream's names by design, and to the second, which uses them by omission. A decision on a "found, undecided" item moves it to the first group or into a `branding` entry.
+
+## dir-handle-invalidation
+
+- **Status:** `ours — no upstream fix`
+- **Files:** `core/dir.go`, `core/dir_handle_generation_test.go`
+- **Symbols:** the `generation` fields of `DirInodeData` and `DirHandle`; `checkDirPosition`; the check that follows the listing step in `DirHandle.ReadDir`; the child mutators `removeChildUnlocked`, `removeAllChildrenUnlocked` and `insertChildUnlocked`; the tests named `TestDirHandle…NoCloud` in `core/dir_handle_generation_test.go`.
+- **Introduced by:** #3 (merge commit recorded after the pull request lands).
+- **Origin:** ported from TigrisFS `b6eba91` and `d3e4661` in the first form of #3, then reworked in review. The spec lists what was left out of the port and why.
+- **Why:** The child mutators invalidated open directory handles by writing into each handle without holding the handle's lock, which is a data race with a concurrent readdir and can lose the invalidation. Two related defects in the same code were fixed with it. See [dir-handle-invalidation.md](dir-handle-invalidation.md).
+- **On sync conflict:** Follow the "Sync notes" section of [dir-handle-invalidation.md](dir-handle-invalidation.md). It is the single source for how to resolve a conflict in these functions and for the inherited functions this code depends on, which a sync can change without any conflict; the list is not repeated here.
+- **Upstream status:** No upstream fix was found when this entry was written. It was checked against the same upstream commit that the sync log names for the check of the rest of the register. If upstream fixes the same defect, audit and compare as the spec's sync notes describe.
