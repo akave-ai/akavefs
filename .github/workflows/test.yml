@@ -84,10 +84,12 @@ jobs:
     # a failure here is reported without waiting on s3proxy. -check.f only works from
     # inside core/, and CGO_ENABLED=1 is inline because -race needs cgo.
     - name: Run fixture-free race tests
-      run: cd core && CGO_ENABLED=1 go test -race -count=1 -check.f 'DirTest|NoCloud' .
+      run: cd core && CGO_ENABLED=1 GORACE=halt_on_error=1 go test -race -count=1 -check.f 'DirTest|NoCloud' .
       timeout-minutes: 10
       # Advisory, not blocking: inherited GeeseFS races remain, so this is red today and
       # no single PR clears it. Flip to blocking when a run reports zero races.
+      # halt_on_error=1 stops at the first report, because the inventory is recorded in
+      # the PR body and the follow-ups; day to day this log only needs to show one.
       continue-on-error: true
 
     - name: Cache s3proxy
@@ -120,11 +122,13 @@ jobs:
     # 10m default, which go test -timeout would otherwise hit first and turn a slow run
     # into a goroutine-dump panic; 25m keeps timeout-minutes below as the binding limit.
     - name: Run core race tests
-      run: SAME_PROCESS_MOUNT=1 CGO_ENABLED=1 GOFLAGS=-race ./test/run-tests.sh
+      run: SAME_PROCESS_MOUNT=1 CGO_ENABLED=1 GOFLAGS=-race GORACE=halt_on_error=1 ./test/run-tests.sh
       env:
         TIMEOUT: 25m
       timeout-minutes: 20
       # Advisory, not blocking: see the fixture-free step above. Flip to blocking when a
       # run reports zero races.
+      # halt_on_error=1 stops at the first report, because the inventory is recorded in
+      # the PR body and the follow-ups; day to day this log only needs to show one.
       continue-on-error: true
 
