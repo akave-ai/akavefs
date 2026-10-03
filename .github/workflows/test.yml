@@ -122,13 +122,15 @@ jobs:
     # 10m default, which go test -timeout would otherwise hit first and turn a slow run
     # into a goroutine-dump panic; 25m keeps timeout-minutes below as the binding limit.
     - name: Run core race tests
-      run: SAME_PROCESS_MOUNT=1 CGO_ENABLED=1 GOFLAGS=-race GORACE=halt_on_error=1 ./test/run-tests.sh
+      run: SAME_PROCESS_MOUNT=1 CGO_ENABLED=1 GOFLAGS=-race ./test/run-tests.sh
       env:
         TIMEOUT: 25m
       timeout-minutes: 20
       # Advisory, not blocking: see the fixture-free step above. Flip to blocking when a
       # run reports zero races.
-      # halt_on_error=1 stops at the first report, because the inventory is recorded in
-      # the PR body and the follow-ups; day to day this log only needs to show one.
+      # No GORACE here, deliberately. Measured: with halt_on_error=1 this step died at
+      # the first report in under a second instead of running the suite, so it stopped
+      # being a test run and became a yes/no on one race. The fixture-free step above
+      # keeps the cap, being the fast one a developer reads first.
       continue-on-error: true
 
