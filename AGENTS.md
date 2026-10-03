@@ -55,6 +55,12 @@ These mirror `.github/workflows/test.yml`. Use them, not commands you compose yo
 - Build: `make build && ./akavefs --help`
 - Tests: `make run-test` and `make run-xfstests` — both need a JVM (s3proxy) and FUSE. Where those are unavailable, say so, and use the PR's GitHub Actions logs as the execution evidence.
 - Locally runnable without a JVM: `cd core && CGO_ENABLED=1 go test -race -count=1 -check.f 'DirTest' .` (`-check.f` only works from inside `core/`).
+- Races: `.github/workflows/test.yml`'s `race` job — the full core suite plus a
+  fixture-free step filtered on `'DirTest|NoCloud'`, a superset of the JVM-free command
+  above, both under `-race`. It keeps `SAME_PROCESS_MOUNT=1`, which the `build` job no
+  longer sets: without it the suite forks `../akavefs`, which that job never builds.
+  Advisory while inherited GeeseFS races remain; it flips to blocking when a run
+  reports zero races.
 
 ## Commits
 
