@@ -81,8 +81,9 @@ func locateLtSlash(inp string, prefixLen int) int {
 }
 
 type DirHandle struct {
-	inode *Inode
-	mu    sync.Mutex // everything below is protected by mu
+	inode   *Inode
+	noSlurp bool
+	mu      sync.Mutex // everything below is protected by mu
 	// readdir() is allowed either at zero (restart from the beginning)
 	// or from the previous offset
 	lastExternalOffset fuseops.DirOffset
@@ -671,7 +672,7 @@ func (dh *DirHandle) loadListing() error {
 	// we immediately switch to regular listings.
 	// Original implementation in Goofys in fact was similar in this aspect
 	// but it was ugly in several places, so ... sorry, it's reworked. O:-)
-	useSlurp := parent.dir.listMarker == "" && parent.fs.flags.StatCacheTTL != 0
+	useSlurp := !dh.noSlurp && parent.dir.listMarker == "" && parent.fs.flags.StatCacheTTL != 0
 
 	// the dir expired, so we need to fetch from the cloud. there
 	// may be static directories that we want to keep, so cloud
@@ -1449,6 +1450,7 @@ func appendChildName(parent, child string) string {
 
 func (inode *Inode) isEmptyDir() (bool, error) {
 	dh := NewDirHandle(inode)
+	dh.noSlurp = true
 	dh.mu.Lock()
 	dh.Seek(2)
 	en, err := dh.ReadDir()
@@ -2024,21 +2026,51 @@ func (parent *Inode) LookUpInodeMaybeDir(name string) (*BlobItemOutput, error) {
 	var object, dirObject *HeadBlobOutput
 	var prefixList *ListBlobsOutput
 	var objectError, dirError, prefixError error
-	results := make(chan int, 3)
+	// iota + 1 so that the zero value of lookupResult.kind matches no case in
+	// receiveResult: a zero-valued result can then never be routed into
+	// object/objectError.
+	const (
+		lookupObject = iota + 1
+		lookupDirObject
+		lookupPrefixList
+	)
+	type lookupResult struct {
+		kind       int
+		object     *HeadBlobOutput
+		dirObject  *HeadBlobOutput
+		prefixList *ListBlobsOutput
+		err        error
+	}
+	results := make(chan lookupResult, 3)
+	receiveResult := func() {
+		result := <-results
+		switch result.kind {
+		case lookupObject:
+			object, objectError = result.object, result.err
+		case lookupDirObject:
+			dirObject, dirError = result.dirObject, result.err
+		case lookupPrefixList:
+			prefixList, prefixError = result.prefixList, result.err
+		}
+	}
 	n := 0
 
 	for {
 		n++
 		go func() {
-			object, objectError = cloud.HeadBlob(&HeadBlobInput{Key: key})
-			results <- 1
+			// Named apart from the outer object/dirObject/prefixList, which
+			// stay in scope here: receiveResult is their only writer, and a
+			// shadowing name would let a later edit silently restore the
+			// cross-goroutine write this channel removes.
+			obj, err := cloud.HeadBlob(&HeadBlobInput{Key: key})
+			results <- lookupResult{kind: lookupObject, object: obj, err: err}
 		}()
 		if cloud.Capabilities().DirBlob {
-			<-results
+			receiveResult()
 			break
 		}
 		if parent.fs.flags.Cheap {
-			<-results
+			receiveResult()
 			if mapAwsError(objectError) != syscall.ENOENT {
 				break
 			}
@@ -2047,11 +2079,11 @@ func (parent *Inode) LookUpInodeMaybeDir(name string) (*BlobItemOutput, error) {
 		if !parent.fs.flags.NoDirObject {
 			n++
 			go func() {
-				dirObject, dirError = cloud.HeadBlob(&HeadBlobInput{Key: key + "/"})
-				results <- 2
+				dirObj, err := cloud.HeadBlob(&HeadBlobInput{Key: key + "/"})
+				results <- lookupResult{kind: lookupDirObject, dirObject: dirObj, err: err}
 			}()
 			if parent.fs.flags.Cheap {
-				<-results
+				receiveResult()
 				if mapAwsError(dirError) != syscall.ENOENT {
 					break
 				}
@@ -2061,25 +2093,32 @@ func (parent *Inode) LookUpInodeMaybeDir(name string) (*BlobItemOutput, error) {
 		if !parent.fs.flags.ExplicitDir {
 			n++
 			go func() {
-				prefixList, prefixError = RetryListBlobs(parent.fs.flags, cloud, &ListBlobsInput{
+				list, err := RetryListBlobs(parent.fs.flags, cloud, &ListBlobsInput{
 					Delimiter: PString("/"),
 					MaxKeys:   PUInt32(1),
 					Prefix:    PString(key + "/"),
 				})
-				results <- 3
+				results <- lookupResult{kind: lookupPrefixList, prefixList: list, err: err}
 			}()
 			if parent.fs.flags.Cheap {
-				<-results
+				receiveResult()
 			}
 		}
 
 		break
 	}
 
+	// Each result is applied only when its own probe reports, so this loop
+	// returns the first usable answer in arrival order; the object >
+	// dirObject > prefixList ladder below is a tiebreak within one iteration,
+	// not a global priority. For a key that exists both as an object and as a
+	// directory prefix the answer therefore depends on which probe finishes
+	// first, which defines behaviour that the unsynchronised read this replaced
+	// left undefined rather than changing it.
 	for n > 0 {
 		n--
 		if !cloud.Capabilities().DirBlob && !parent.fs.flags.Cheap {
-			<-results
+			receiveResult()
 		}
 		if object != nil {
 			return &object.BlobItemOutput, nil
