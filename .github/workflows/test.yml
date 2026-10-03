@@ -41,7 +41,7 @@ jobs:
       run: ./akavefs --help
 
     - name: Run tests
-      run: SAME_PROCESS_MOUNT=1 make run-test
+      run: make run-test
       timeout-minutes: 12
 
     - name: Run xfstests
@@ -64,3 +64,73 @@ jobs:
 
     - name: Run go vet
       run: go vet ./...
+
+  race:
+    runs-on: ubuntu-24.04
+    steps:
+    - uses: actions/checkout@v7
+
+    - name: Set up Go
+      uses: actions/setup-go@v6
+      with:
+        go-version: '1.25'
+        cache-dependency-path: go.sum
+
+    # Two test steps, cheapest first. This one needs no JVM and no FUSE mount, so it is
+    # the only part of this job a developer can reproduce locally: a superset of the
+    # JVM-free local gate in AGENTS.md, which filters on 'DirTest' alone. The wider
+    # filter is deliberate — it adds the NoCloud tests, which is where the cold-rename
+    # and inode-refresh regression tests live. Running it before the jar machinery means
+    # a failure here is reported without waiting on s3proxy. -check.f only works from
+    # inside core/, and CGO_ENABLED=1 is inline because -race needs cgo.
+    - name: Run fixture-free race tests
+      run: cd core && CGO_ENABLED=1 GORACE=halt_on_error=1 go test -race -count=1 -check.f 'DirTest|NoCloud' .
+      timeout-minutes: 10
+      # Advisory, not blocking: inherited GeeseFS races remain, so this is red today and
+      # no single PR clears it. Flip to blocking when a run reports zero races.
+      # halt_on_error=1 stops at the first report, because the inventory is recorded in
+      # the PR body and the follow-ups; day to day this log only needs to show one.
+      continue-on-error: true
+
+    - name: Cache s3proxy
+      uses: actions/cache@v4
+      with:
+        path: s3proxy.jar
+        key: s3proxy-1.8.0
+
+    # actions/cache does nothing on a miss, and this job never calls `make run-test`,
+    # so nothing else would fetch the jar. The build job self-heals through make; this
+    # one would fail 30s later inside run-proxy.sh with a misleading "proxy did not
+    # respond" error. Not hypothetical: a cache entry scoped to another PR's ref is
+    # unreachable from this one. A no-op on a cache hit: the make target is guarded by -f.
+    - name: Fetch s3proxy
+      run: make s3proxy.jar
+
+    # The full suite is what makes this job worth its runtime: it is the only step that
+    # mounts FUSE and exercises the flush path.
+    # SAME_PROCESS_MOUNT=1 is load-bearing. Without it core/goofys_unix_test.go:53 forks
+    # ../akavefs as the FUSE server, and that binary is built with CGO_ENABLED=0, so the
+    # detector would see nothing from the FUSE path.
+    # Worse than uninstrumented: this job runs no `make build`, so ../akavefs does not
+    # exist and the fork fails outright at goofys_unix_test.go:70-71.
+    # Upstream c3746fd ("Run FUSE tests out of process") dropped the variable from the
+    # build job and d163a06 followed in AGENTS.md's Tests gate, because out-of-process is
+    # the right default for a functional run; it is the wrong default here.
+    # CGO_ENABLED=1 cannot come from the Makefile, which exports 0 and is bypassed by
+    # calling run-tests.sh directly. GOFLAGS is the only lever: run-tests.sh reads $1 as
+    # a gocheck -check.f filter, not as go test flags. TIMEOUT overrides run-proxy.sh's
+    # 10m default, which go test -timeout would otherwise hit first and turn a slow run
+    # into a goroutine-dump panic; 25m keeps timeout-minutes below as the binding limit.
+    - name: Run core race tests
+      run: SAME_PROCESS_MOUNT=1 CGO_ENABLED=1 GOFLAGS=-race ./test/run-tests.sh
+      env:
+        TIMEOUT: 25m
+      timeout-minutes: 20
+      # Advisory, not blocking: see the fixture-free step above. Flip to blocking when a
+      # run reports zero races.
+      # No GORACE here, deliberately. Measured: with halt_on_error=1 this step died at
+      # the first report in under a second instead of running the suite, so it stopped
+      # being a test run and became a yes/no on one race. The fixture-free step above
+      # keeps the cap, being the fast one a developer reads first.
+      continue-on-error: true
+
