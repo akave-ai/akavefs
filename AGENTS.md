@@ -11,8 +11,9 @@ a rule, never its only source.
 
 AkaveFS is a FUSE filesystem over S3-compatible object storage, forked from
 [GeeseFS](https://github.com/yandex-cloud/geesefs) (itself a Goofys fork). Most of the code is
-inherited, and **we keep merging upstream GeeseFS changes**. That shapes every rule below: the
-smaller and more local our diff against upstream, the cheaper every future sync is.
+inherited, and **we merge upstream GeeseFS changes periodically** — when a client asks, or
+roughly every one to two months. That shapes every rule below: the smaller and more local our
+diff against upstream, the cheaper every future sync is.
 
 ## How we work
 
@@ -25,11 +26,13 @@ smaller and more local our diff against upstream, the cheaper every future sync 
 
 ## Upstream GeeseFS
 
+- **Before any change, read `specs/README.md` and the `specs/divergences.md` entries for the files you touch (and the linked spec, if the entry has one).** They record how AkaveFS differs from GeeseFS, why, and what that means for the next sync. A change that adds, alters or removes a divergence updates `specs/` in the same PR.
+- **Defects.** When fixing a defect in inherited code: if upstream has not fixed it, fix it here and say so in `specs/`. If upstream has fixed it, audit their fix before taking it — compare it with ours if we have one, then adopt it, keep ours or combine them, and record the outcome and why in `specs/`.
 - **Keep changes to inherited code minimal and local.** Fix the bug; do not refactor, reformat, rename, reorder or split inherited files in the same change. A drive-by cleanup in `core/dir.go` becomes a merge conflict on every future sync.
 - Put Akave-specific functionality in new files where practical, rather than weaving it through inherited ones.
 - Do not change the Go module path (`github.com/yandex-cloud/geesefs`) or mass-edit imports without an explicit decision — it touches every file and conflicts with every sync.
 - When a fix is ported from upstream or a sibling fork (GeeseFS, TigrisFS, Goofys), cite the source commit in the PR description, and say what was left out of the port.
-- **Syncing upstream:** add the remote once (`git remote add upstream https://github.com/yandex-cloud/geesefs`), then `git fetch upstream` and **merge** `upstream/master` into a `sync/geesefs-<yyyymmdd>` branch — merge, never rebase or squash, so the next sync has a merge base. Resolve conflicts in favour of keeping AkaveFS's deliberate divergences (CLI name and FUSE subtype `akavefs` in `core/cfg/flags.go`, `core/goofys_fuse.go`, `core/cluster_fs_fuse.go`; binary names in `.github/workflows/release.yml`; branding in `README.md`), run the gates below, and open a PR that lists the conflicts and how each was resolved.
+- **Syncing upstream:** add the remote once (`git remote add upstream https://github.com/yandex-cloud/geesefs`), then `git fetch upstream` and **merge** `upstream/master` into a `sync/geesefs-<yyyymmdd>` branch — merge, never rebase or squash, so the next sync has a merge base. Resolve conflicts in favour of keeping AkaveFS's deliberate divergences as recorded in `specs/divergences.md`, run the gates below, and open a PR that lists the conflicts and how each was resolved. Audit each incoming upstream change and re-check the `specs/` entries against it; record both in `specs/upstream-syncs.md`.
 
 ## Code
 
