@@ -107,7 +107,8 @@ jobs:
     # The full suite is what makes this job worth its runtime: it is the only step that
     # mounts FUSE and exercises the flush path.
     # SAME_PROCESS_MOUNT=1 is load-bearing. Without it core/goofys_unix_test.go:53 forks
-    # ../akavefs as the FUSE server, and that binary is built with CGO_ENABLED=0, so
+    # ../akavefs as the FUSE server, and that binary is built with CGO_ENABLED=0, so the
+    # detector would see nothing from the FUSE path.
     # Worse than uninstrumented: this job runs no `make build`, so ../akavefs does not
     # exist and the fork fails outright at goofys_unix_test.go:70-71.
     # Upstream c3746fd ("Run FUSE tests out of process") dropped the variable from the
