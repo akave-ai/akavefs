@@ -12,9 +12,11 @@ import (
 
 // Everything in this file only guards under -race. It covers the removal of an
 // unsynchronised write, so the failure it detects is a data race and nothing
-// else: with master's core/dir.go, `go test -race` reports 21 races and exits 1,
-// while the same suite without -race -- which is the command CI runs today --
-// prints "OK: 5 passed" and exits 0.
+// else: with master's core/dir.go, `go test -race` reports data races and exits
+// 1, while the same suite without -race -- which is the command CI runs today --
+// passes and exits 0. The number of reports is deliberately not quoted here: the
+// detector dedups by stack, so it varies run to run and with the shape of this
+// file.
 //
 // LookUpInodeMaybeDir launches one probe per enabled lookup strategy:
 // HeadBlob(key), HeadBlob(key+"/") and the prefix LIST. All three run only while
@@ -27,9 +29,9 @@ import (
 const maybeDirLookupProbes = 3
 
 // maybeDirLookupProbeTimeout only has to outlast a probe that is already
-// unblocked. A barrier-released iteration costs ~0.4ms under -race (measured:
-// 3000 iterations in ~1.1s), so 30s cannot flake, and the bound exists purely to
-// turn a probe miscount into a legible failure instead of a hang.
+// unblocked. A barrier-released iteration costs ~0.4ms under -race, measured over
+// this file's own repetitions, so the bound below cannot flake; it exists purely
+// to turn a probe miscount into a legible failure instead of a hang.
 const maybeDirLookupProbeTimeout = 30 * time.Second
 
 // maybeDirLookupIterations is how often each variant repeats its lookup. One
@@ -137,9 +139,10 @@ func maybeDirLookupRunIteration(t *C, fs *Goofys, iteration int, tc maybeDirLook
 // matters: the lookup can return on one buffered result while a later probe
 // goroutine is still between its go statement and its send, so an extra probe
 // may not have reached the channel yet and this receive can find nothing. Over
-// maybeDirLookupIterations repetitions at least one iteration observes it --
-// measured on a probe count of 2, every variant fails on iteration 0 -- but no
-// single iteration is guaranteed to. The receive stays non-blocking so the
+// maybeDirLookupIterations repetitions the drift is caught in practice -- an
+// extra probe added to LookUpInodeMaybeDir without incrementing n fails every
+// variant on an early iteration, in every run measured -- but no single
+// iteration is guaranteed to catch it. The receive stays non-blocking so the
 // passing path pays nothing; a bounded drain would not make one iteration
 // sufficient either, since no fixed wait outlasts every straggler.
 func maybeDirLookupAssertNoExtraProbe(t *C, iteration int, started <-chan struct{}) {
