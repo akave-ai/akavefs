@@ -693,6 +693,12 @@ func (s *GoofysTest) TestConcurrentRefDeref(t *C) {
 
 		var wg sync.WaitGroup
 
+		// The lookup goroutine writes lookupOp.Entry while the forget goroutine
+		// runs, so the id to forget is read here, before either starts. The
+		// kernel sends a separate op for each request; sharing one is this
+		// test's doing.
+		child := lookupOp.Entry.Child
+
 		// The idea of this test is just that lookup->forget->lookup shouldn't crash with "Unknown inode: xxx"
 		wg.Add(2)
 		go func() {
@@ -706,7 +712,7 @@ func (s *GoofysTest) TestConcurrentRefDeref(t *C) {
 		}()
 		go func() {
 			fsint.ForgetInode(nil, &fuseops.ForgetInodeOp{
-				Inode: lookupOp.Entry.Child,
+				Inode: child,
 				N:     1,
 			})
 			wg.Done()

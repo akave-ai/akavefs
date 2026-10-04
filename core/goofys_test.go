@@ -70,7 +70,12 @@ import (
 )
 
 func (s *GoofysTest) getRoot(t *C) (inode *Inode) {
+	// fs.inodes is written under fs.mu (insertInode), and tests call this
+	// while the fs is creating inodes, some of them from several goroutines.
+	// The assert comes after the unlock so that a failure leaves nothing held.
+	s.fs.mu.RLock()
 	inode = s.fs.inodes[fuseops.RootInodeID]
+	s.fs.mu.RUnlock()
 	t.Assert(inode, NotNil)
 	return
 }
@@ -901,7 +906,10 @@ func (s *GoofysTest) TestRenamePreserveMetadata(t *C) {
 		t.Assert(err, IsNil)
 	}
 
-	s.fs.flags.MaxFlushers = 0
+	// Pause flushing the way TestListBeforeFlushRename does, by filling the count of
+	// active flushers: the Flusher reads flags.MaxFlushers without a lock, so
+	// writing the flag here is a data race.
+	atomic.AddInt64(&s.fs.activeFlushers, s.fs.flags.MaxFlushers)
 
 	err = root.Rename(from, root, to)
 	t.Assert(err, IsNil)
@@ -914,7 +922,9 @@ func (s *GoofysTest) TestRenamePreserveMetadata(t *C) {
 	xattrVal, err := toInode.GetXattr("user.foo")
 	t.Assert(xattrVal, DeepEquals, []byte("bar"))
 
-	s.fs.flags.MaxFlushers = 16
+	// Resume flushing
+	atomic.AddInt64(&s.fs.activeFlushers, -s.fs.flags.MaxFlushers)
+	s.fs.WakeupFlusher()
 
 	err = toInode.SyncFile()
 	t.Assert(err, IsNil)
