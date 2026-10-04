@@ -494,9 +494,14 @@ func (s *GoofysTest) testReadMyOwnWriteFuse(t *C, externalUpdate bool) {
 
 	time.Sleep(s.fs.flags.StatCacheTTL)
 
-	root := s.getRoot(t)
-	cloud := &TestBackend{StorageBackend: root.dir.cloud}
-	root.dir.cloud = cloud
+	// The root's backend used to be wrapped in a TestBackend here. The wrapper
+	// only served an error injection that upstream 8195960 removed, and nothing
+	// read it afterwards. Storing it into root.dir.cloud under a live mount is
+	// a data race with Inode.cloud(), which reads the field without a lock. The
+	// wrapper was not transparent either: its Delegate() returns the wrapper,
+	// so OpenDir stopped seeing an S3 backend. Nothing below opens a directory.
+	// If an injection is needed here again, it needs a synchronised way to swap
+	// the backend.
 
 	fh, err = os.Open(filePath)
 	t.Assert(err, IsNil)
