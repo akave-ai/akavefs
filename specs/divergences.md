@@ -184,7 +184,7 @@ a divergence updates `specs/` in the same pull request.
 - **Status:** `ours — no upstream fix`
 - **Files:** `core/dir.go`, `core/dir_handle_generation_test.go`
 - **Symbols:** the `generation` fields of `DirInodeData` and `DirHandle`; `checkDirPosition`; the check that follows the listing step in `DirHandle.ReadDir`; the child mutators `removeChildUnlocked`, `removeAllChildrenUnlocked` and `insertChildUnlocked`; the tests named `TestDirHandle…NoCloud` in `core/dir_handle_generation_test.go`.
-- **Introduced by:** #3 (merge commit recorded after the pull request lands).
+- **Introduced by:** #3 (`9e37512`).
 - **Origin:** ported from TigrisFS `b6eba91` and `d3e4661` in the first form of #3, then reworked in review. The spec lists what was left out of the port and why.
 - **Why:** The child mutators invalidated open directory handles by writing into each handle without holding the handle's lock, which is a data race with a concurrent readdir and can lose the invalidation. Two related defects in the same code were fixed with it. See [dir-handle-invalidation.md](dir-handle-invalidation.md).
 - **On sync conflict:** Follow the "Sync notes" section of [dir-handle-invalidation.md](dir-handle-invalidation.md). It is the single source for how to resolve a conflict in these functions and for the inherited functions this code depends on, which a sync can change without any conflict; the list is not repeated here.

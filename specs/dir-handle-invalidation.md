@@ -215,11 +215,11 @@ run locally and under the race detector. The command that selects them, run from
 CGO_ENABLED=1 go test -race -count=1 -check.f 'DirTest|NoCloud' .
 ```
 
-That is the filter of the fixture-free step of the CI `race` job (see `ci-race-job` in
-the register), which runs them in CI. The JVM-free command in the Gates section of
-`AGENTS.md` does not run them: it filters on `'DirTest'` alone, and these tests belong
-to the `GoofysTest` suite and are matched only by the `NoCloud` in their names. The
-grouping below was observed by running the file against upstream's `core/dir.go`.
+That is the JVM-free command in the Gates section of `AGENTS.md`, and the filter of the
+fixture-free step of the CI `race` job (see `ci-race-job` in the register), which runs
+them in CI. A filter of `'DirTest'` alone does not run them: these tests belong to the
+`GoofysTest` suite and are matched only by the `NoCloud` in their names. The grouping
+below was observed by running the file against upstream's `core/dir.go`.
 
 **(a) Fail on upstream's code.**
 
@@ -362,8 +362,7 @@ here, with one added line each, so that the difference from upstream stays small
   `lastInternalOffset`, `lastExternalOffset` and `lastName`. Derive it again the same
   way after a sync, because a merge can add a call site without any conflict. If a sync
   touches any of the code below, re-read this file and run the tests with the command
-  under "Tests that pin it"; the `'DirTest'`-only command in `AGENTS.md` does not run
-  them.
+  under "Tests that pin it"; a filter of `'DirTest'` alone does not run them.
   - Code that writes `Children`: the three mutators in `core/dir.go`, and
     `ClusterFs.applyStolenInode` and `ClusterFs.tryYield` in `core/cluster_fs.go`. For a
     new one, decide whether it can shift a position. If it can, it needs the bump.
