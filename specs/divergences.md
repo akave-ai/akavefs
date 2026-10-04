@@ -230,7 +230,7 @@ a divergence updates `specs/` in the same pull request.
 - **Status:** `ours — no upstream fix`
 - **Files:** `core/dir.go`, `core/lookup_cached_race_test.go`
 - **Symbols:** `LookUpCached`; the field `Inode.CacheState`; the test `TestLookUpCachedVersusCacheStateNoCloud`.
-- **Introduced by:** PR #TBD (fix/core-suite-races).
+- **Introduced by:** #22.
 - **Origin:** the atomic read matches TigrisFS `a736b74e`, which also moves the check under `inode.mu`; that restructure is left out. The test is original.
 - **Why:** `SetCacheState` stores `Inode.CacheState` with an atomic operation, under the inode's own lock. `LookUpCached` holds only the parent's lock when it finds a child whose attributes have expired and reads the child's state, to decide whether to return the cached inode or recheck it against the backend, and it read the field plainly. A lookup of such an entry while its state changes — a small-object flush finishing is the case seen in CI — is a data race, and the race detector reports it in the full-suite step of the `race` job. AkaveFS reads the field with `atomic.LoadInt32` there. No lock is added, removed or reordered, and the decision is the one it was: the lookup sees the state from before or after the concurrent change, which are the two orders a lock would have allowed.
 
@@ -245,7 +245,7 @@ a divergence updates `specs/` in the same pull request.
 - **Status:** `ours — no upstream fix`
 - **Files:** `core/goofys_test.go`, `core/goofys_unix_test.go`, `core/goofys_fs_test.go`
 - **Symbols:** the helper `getRoot` and the test `TestRenamePreserveMetadata` in `core/goofys_test.go`; the helper `testReadMyOwnWriteFuse` in `core/goofys_fs_test.go`, which two tests call; the test `TestConcurrentRefDeref` in `core/goofys_unix_test.go`.
-- **Introduced by:** PR #TBD (fix/core-suite-races).
+- **Introduced by:** #22.
 - **Origin:** the same four test races are fixed in TigrisFS `a736b74e`. Its production changes that go with them (`getCloud`/`setCloud`, an atomic `MaxFlushers`) are left out; the changes here are in test code only.
 - **Why:** Four inherited tests create data races of their own, which the race detector reports in the full-suite step of the `race` job. None is a defect in production code, and each hides whatever that step would otherwise show.
 
