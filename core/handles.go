@@ -84,15 +84,17 @@ type Inode struct {
 	Name       string
 	fs         *Goofys
 	Attributes InodeAttributes
-	// It is generally safe to read `AttrTime` without locking because if some other
-	// operation is modifying `AttrTime`, in most cases the reader is okay with working with
-	// stale data. But Time is a struct and modifying it is not atomic. However
-	// in practice (until the year 2157) we should be okay because
-	// - Almost all uses of AttrTime will be about comparisons (AttrTime < x, AttrTime > x)
-	// - Time object will have Time::monotonic bit set (until the year 2157) => the time
-	//   comparision just compares Time::ext field
+	// It is safe to read `AttrTime` without locking: if some other operation is
+	// modifying `AttrTime`, in most cases the reader is okay with working with
+	// stale data, and a read never sees a partly written value. Time is a struct
+	// and modifying it is not atomic, so the field is an atomicTime (see
+	// attr_time.go), which swaps the whole value at once. Comparing a plain Time
+	// was not enough: the zero time and TIME_MAX are stored here too, and they
+	// carry no monotonic reading, so a comparison uses more than one word.
 	// Ref: https://github.com/golang/go/blob/e42ae65a8507/src/time/time.go#L12:L56
-	AttrTime   time.Time
+	// SetAttrTime is still LOCKS_REQUIRED(inode.mu): it also writes ExpireTime,
+	// which is a plain field.
+	AttrTime   atomicTime
 	ExpireTime time.Time
 
 	mu           sync.Mutex // everything below is protected by mu
@@ -164,11 +166,11 @@ func NewInode(fs *Goofys, parent *Inode, name string) (inode *Inode) {
 			Gid:  fs.flags.Gid,
 			Mode: fs.flags.FileMode,
 		},
-		AttrTime:   time.Now(),
 		Parent:     parent,
 		s3Metadata: make(map[string][]byte),
 		refcnt:     0,
 	}
+	inode.AttrTime.Store(time.Now())
 
 	inode.buffers.helpers = inode
 
@@ -398,7 +400,7 @@ func (inode *Inode) DeRef(n int64) (stale bool) {
 // LOCKS_REQUIRED(inode.mu)
 // LOCKS_EXCLUDED(inode.fs.mu)
 func (inode *Inode) SetAttrTime(tm time.Time) {
-	inode.AttrTime = tm
+	inode.AttrTime.Store(tm)
 	// Expire when at least both AttrTime+TTL & ExpireTime pass
 	// AttrTime is required for Windows where we don't use SetExpireTime()
 	inode.SetExpireTime(tm.Add(inode.fs.flags.StatCacheTTL))

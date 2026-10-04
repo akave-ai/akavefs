@@ -1934,7 +1934,7 @@ func (parent *Inode) LookUpCached(name string) (inode *Inode, err error) {
 	inode = parent.findChildUnlocked(name)
 	if inode != nil {
 		ok = true
-		if expired(inode.AttrTime, parent.fs.flags.StatCacheTTL) {
+		if expired(inode.AttrTime.Load(), parent.fs.flags.StatCacheTTL) {
 			ok = false
 			if atomic.LoadInt32(&inode.CacheState) != ST_CACHED ||
 				inode.isDir() && atomic.LoadInt64(&inode.dir.ModifiedChildren) > 0 {
