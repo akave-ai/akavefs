@@ -89,7 +89,7 @@ func (fs *ClusterFs) createFile(parent *Inode, name string, mode os.FileMode) (
 
 	// allocate file handle
 	fh := NewFileHandle(child)
-	child.fileHandles = 1
+	atomic.StoreInt32(&child.fileHandles, 1)
 	handleId := fs.Goofys.AddFileHandle(fh)
 
 	pbInode := child.pbInode()
@@ -684,7 +684,7 @@ func (fs *ClusterFs) steal(inode *Inode) error {
 
 // REQUIRED_LOCK(inode.ChangeOwnerLock)
 func (fs *ClusterFs) tryYield(inode *Inode, newOwner NodeId) *pb.StolenInode {
-	if inode.CacheState == ST_CACHED && inode.fileHandles == 0 {
+	if inode.CacheState == ST_CACHED && atomic.LoadInt32(&inode.fileHandles) == 0 {
 		if inode.isDir() {
 			var children []*pb.Inode
 			for _, child := range inode.dir.Children {
@@ -753,7 +753,7 @@ func (fs *ClusterFs) tryYield(inode *Inode, newOwner NodeId) *pb.StolenInode {
 		}
 	} else {
 		fuseLog.Infof("could not yield inode %v: inode.CacheState == %v inode.fileHandles == %v",
-			inode.Id, inode.CacheState, inode.fileHandles)
+			inode.Id, inode.CacheState, atomic.LoadInt32(&inode.fileHandles))
 		return nil
 	}
 }

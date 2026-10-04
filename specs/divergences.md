@@ -195,8 +195,32 @@ a divergence updates `specs/` in the same pull request.
 - **Status:** `ours — no upstream fix`
 - **Files:** `core/goofys_common_test.go`
 - **Symbols:** `setUpTestTimeout`, `GoofysTest.timeout`, `TearDownTest`.
-- **Introduced by:** #18.
+- **Introduced by:** #18 (`20566b8`).
 - **Origin:** original. The watchdog itself is inherited, from Goofys `be3a8b6`.
 - **Why:** `setUpTestTimeout` starts a goroutine that panics the test binary when a test runs past its timeout, and stops it by closing the channel in `GoofysTest.timeout`. Upstream's goroutine reads that field when it starts waiting, while `TearDownTest` closes the channel and sets the field to nil, and a second `setUpTestTimeout` call in the same test (`TestBenchLs` makes one) closes it and stores a new channel, with no synchronisation on either side. That is a data race; the race detector reports it in a run of the fixture-free tests on upstream's code, and the run then exits non-zero with every test passing. It is also a leak: a goroutine that first reads the field after it was set to nil waits on a nil channel, never stops, outlives its test and panics the binary during a later one. AkaveFS creates the channel as a local, stores it in the field, and has the goroutine receive from the local, so the goroutine always holds the channel that is later closed. `TearDownTest` is unchanged, and so are the timeout, the panic message and the traceback setting.
 - **On sync conflict:** Keep the local channel and the goroutine's receive from it; take upstream's other changes to `setUpTestTimeout` and to `TearDownTest`. If upstream changes how the watchdog is stopped, check that its goroutine still does not read `GoofysTest.timeout`, then run the JVM-free gate from `AGENTS.md`: a race report that names `TearDownTest` or `setUpTestTimeout` means the fix was lost.
 - **Upstream status:** No upstream fix was found when this entry was written. If upstream fixes the same race, audit its fix and compare it with ours as [README.md](README.md) describes.
+
+## file-handles-atomic
+
+- **Status:** `ours — no upstream fix`
+- **Files:** `core/file.go`, `core/dir.go`, `core/handles.go`, `core/cluster_fs.go`, `core/file_handles_race_test.go`
+- **Symbols:** the field `Inode.fileHandles`; the readers `sendUpload`, `sendUploadParts` and `patchObjectRanges` in `core/file.go`, `renameInCache` in `core/dir.go`, `DumpThis` in `core/handles.go` and `ClusterFs.tryYield` in `core/cluster_fs.go`; the two writers that set the count to one for a new file, `CreateOrOpen` in `core/dir.go` and `ClusterFs.createFile` in `core/cluster_fs.go`; the tests `TestUploadDecisionVersusReleaseNoCloud`, `TestDumpVersusReleaseNoCloud` and `TestCreateVersusEvictEntryNoCloud`, which pin the reads on the upload path, the read in `DumpThis` and the write in `CreateOrOpen`.
+- **Introduced by:** PR #TBD (fix/file-handles-atomic).
+- **Origin:** the three reads in `sendUpload` and `sendUploadParts` match TigrisFS `a736b74e668c`, which converts those and leaves the rest plain. The other conversions and the tests are original.
+- **Why:** `FileHandle.Release` decrements `Inode.fileHandles` with an atomic operation and without `inode.mu`; its inherited comment says atomics are the discipline for this field. The upload path did not follow it: `sendUpload`, `sendUploadParts` and `patchObjectRanges` run under `inode.mu` (reached through `TryFlush`, from the `Flusher` and from `SyncFile`) and read the field plainly, so a file being closed while its inode is considered for upload is a data race, and the race detector reports it. AkaveFS reads the field with `atomic.LoadInt32` there, and at every other place that read or wrote it plainly — the readers and the two writers named under **Symbols** — so that no plain access to the field is left and that can be checked with the search below.
+
+  This changes synchronisation only: no lock is added, removed or reordered, and the upload decision is the one it was. What the value decides is when to upload and which dirty parts or buffers go in this pass: whether a small object is flushed now, whether a multipart upload is completed now, whether `sendUploadParts` sends the part still being written and the zero-range parts, and whether `patchObjectRanges` sends its buffers. Whatever a pass skips stays dirty and goes in a later one, and `Release` wakes the flusher after its decrement. The reader sees the count either before or after each concurrent change, which are the two orders a lock would have allowed.
+
+  Not addressed here: `renameInCache` reads the count and moves the open-file protection (`ModifiedChildren`) from the old parent directory to the new one, while `Release`, on reaching zero, takes that protection off `inode.Parent`, which it reads without a lock. The two can interleave so that the counters of the two directories end up wrong in either direction. Atomic access removes the detector's report on the count in `renameInCache`; it does not make that check-then-act sequence safe, and the unlocked `Parent` read in `Release` is still a race.
+
+  Two more things are left as they were. Both are inherited and identical on `origin/master`:
+
+  - `TryFlush` reads `inode.Parent` before it takes any lock, while `renameInCache` writes `fromInode.Parent` under the locks `Rename` holds. Together with the unlocked `Parent` read in `Release`, that leaves the rename path with races this change does not touch, and no test here runs a rename against `Release`.
+  - In cluster mode `ClusterFs.openFile` increments the count under the owner lock only, not `inode.mu`, so the upload decision can see zero while an open is in progress.
+- **On sync conflict:** Take upstream's logic, then re-apply atomic access on every line that reads or writes `Inode.fileHandles`, including any new one upstream adds. Afterwards run the search below from the repository root: on a correct tree it prints one line only, the log format string in `tryYield` that spells the field's name. The search is line-based, so also read the conflicting hunks; then run the JVM-free gate from `AGENTS.md`, where a race report that names `sendUpload`, `sendUploadParts`, `patchObjectRanges`, `DumpThis` or `CreateOrOpen` on this field means a conversion was lost.
+
+  ```sh
+  /usr/bin/grep -nE '\.fileHandles\b' core/*.go | /usr/bin/grep -vE '_test\.go:|(fs|Goofys)\.fileHandles|atomic\.(Load|Add|Store)Int32\(&[][a-zA-Z0-9_.]*\.fileHandles'
+  ```
+- **Upstream status:** No upstream fix was found when this entry was written. If upstream fixes the same race, audit its fix and compare it with ours as [README.md](README.md) describes; a fix that covers only the upload path leaves the other plain accesses to re-convert.
