@@ -166,9 +166,9 @@ upstream placed it on the first child.
   leaves an inode name in `lastName` after a dot entry as well, and the inherited search
   then looks for that name among the children. This was read from the code and is not
   exercised by a test.
-- `ClusterFs.readDir` unlocks `dh.mu` on the error path of its read loop although the
-  unlock is already deferred. This was read from the code, not executed. It is inherited
-  and not touched here.
+- Closed since: `ClusterFs.readDir` used to unlock `dh.mu` on the error path of its read
+  loop although the unlock is already deferred. That is fixed and covered by a test; see
+  `cluster-readdir-double-unlock` in the register. It was not part of this divergence.
 - The inherited comment above the second `checkDirPosition` in `ReadDir` says the index
   may be -1 after `loadListing`. That described the mutators' direct write. The index now
   becomes -1 only inside `checkDirPosition`. The comment was left as it is, because it is
