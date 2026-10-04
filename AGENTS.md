@@ -57,13 +57,15 @@ These mirror `.github/workflows/test.yml`. Use them, not commands you compose yo
 - Lint: `test -z "$(gofmt -l .)"` and `go vet ./...`
 - Build: `make build && ./akavefs --help`
 - Tests: `make run-test` and `make run-xfstests` — both need a JVM (s3proxy) and FUSE. Where those are unavailable, say so, and use the PR's GitHub Actions logs as the execution evidence.
-- Locally runnable without a JVM: `cd core && CGO_ENABLED=1 go test -race -count=1 -check.f 'DirTest|NoCloud' .` (`-check.f` only works from inside `core/`). `'DirTest'` alone misses the fixture-free tests in the `GoofysTest` suite, whose names end in `NoCloud`. While the test-teardown race in #9 is open this run exits non-zero with every test passing: read the frames of each race report rather than the exit code.
+- Locally runnable without a JVM: `cd core && CGO_ENABLED=1 go test -race -count=1 -check.f 'DirTest|NoCloud' .` (`-check.f` only works from inside `core/`). `'DirTest'` alone misses the fixture-free tests in the `GoofysTest` suite, whose names end in `NoCloud`. This run exits zero with no race report; a race report is a regression.
 - Races: `.github/workflows/test.yml`'s `race` job — the full core suite plus a
   fixture-free step with the same `'DirTest|NoCloud'` filter as the JVM-free command
   above, both under `-race`. It keeps `SAME_PROCESS_MOUNT=1`, which the `build` job no
   longer sets: without it the suite forks `../akavefs`, which that job never builds.
-  Advisory while inherited GeeseFS races remain; it flips to blocking when a run
-  reports zero races.
+  The fixture-free step is expected to report no race, and a report there is a
+  regression; it stays advisory until we decide to make it blocking. The full-suite
+  step is advisory while inherited GeeseFS races remain; it flips to blocking when a
+  run reports zero races.
 
 ## Commits
 

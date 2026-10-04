@@ -463,13 +463,18 @@ func (s *GoofysTest) setUpTestTimeout(t *C, timeout time.Duration) {
 	if s.timeout != nil {
 		close(s.timeout)
 	}
-	s.timeout = make(chan int)
+	// The watchdog receives from this local, never from s.timeout: TearDownTest
+	// and a second setUpTestTimeout call write that field without synchronisation,
+	// and a watchdog that read it late would see nil, never stop, and panic the
+	// binary during a later test.
+	stop := make(chan int)
+	s.timeout = stop
 	debug.SetTraceback("all")
 	started := time.Now()
 
 	go func() {
 		select {
-		case _, ok := <-s.timeout:
+		case _, ok := <-stop:
 			if !ok {
 				return
 			}
