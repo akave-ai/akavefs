@@ -16,8 +16,9 @@ The folder holds three kinds of document:
   were re-checked.
 - Per-divergence specs — one file for each divergence that changes behaviour and needs
   more room than a register entry: [stale-inode-refresh.md](stale-inode-refresh.md),
-  [lookup-maybe-dir-race.md](lookup-maybe-dir-race.md) and
-  [rename-cold-target.md](rename-cold-target.md).
+  [lookup-maybe-dir-race.md](lookup-maybe-dir-race.md),
+  [rename-cold-target.md](rename-cold-target.md) and
+  [dir-handle-invalidation.md](dir-handle-invalidation.md).
 
 Behavioural specs of AkaveFS itself (what the filesystem promises, POSIX semantics) are a
 separate piece of work. When they are written, they go under `specs/behaviour/`.

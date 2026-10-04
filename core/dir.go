@@ -60,6 +60,7 @@ type DirInodeData struct {
 	DeletedChildren map[string]*Inode
 	Gaps            []*SlurpGap
 	handles         []*DirHandle
+	generation      uint64 // bumped by the child mutators in this file when a change can shift an open handle's position
 }
 
 // Returns the position of first char < '/' in `inp` after prefixLen + any continued '/' characters.
@@ -88,6 +89,7 @@ type DirHandle struct {
 	// or from the previous offset
 	lastExternalOffset fuseops.DirOffset
 	lastInternalOffset int
+	generation         uint64 // the directory generation last seen by checkDirPosition; zero on a fresh handle, and Seek does not update it
 	lastName           string
 }
 
@@ -633,10 +635,34 @@ func (dh *DirHandle) listObjectsFlat() (start string, err error) {
 // LOCKS_REQUIRED(dh.mu)
 // LOCKS_REQUIRED(dh.inode.mu)
 func (dh *DirHandle) checkDirPosition() {
+	// A child mutator holds the directory's mu but not dh.mu, so it must not
+	// write into a handle. It bumps the directory's generation instead, and the
+	// handle notices here, under both locks, and re-finds its place below.
+	//
+	// Only removeChildUnlocked, removeAllChildrenUnlocked and the mid-slice
+	// path of insertChildUnlocked bump. Other changes to Children do not: an
+	// append or a first child moves no position, and ClusterFs.applyStolenInode
+	// and tryYield never invalidated handles.
+	//
+	// The counter is atomic so that it can never be a data race itself, even
+	// if a caller breaks a mutator's LOCKS_REQUIRED(parent.mu): that every
+	// caller keeps it has not been proven.
+	if generation := atomic.LoadUint64(&dh.inode.dir.generation); dh.generation != generation {
+		dh.lastInternalOffset = -1
+		dh.generation = generation
+	}
+
 	if dh.lastInternalOffset < 0 {
 		parent := dh.inode
 		// Directory position invalidated, try to find it again using lastName
-		if dh.lastName == "." {
+		if dh.lastExternalOffset == 0 {
+			// Nothing has been returned yet (fresh handle or rewind), so restart
+			// at "." instead of skipping "." and "..". The external offset says
+			// so and lastName does not: the root's name is empty, and some
+			// callers pass the inode's name to Next for the dot entries, so a
+			// root handle past ".." has an empty lastName as well.
+			dh.lastInternalOffset = 0
+		} else if dh.lastName == "." {
 			dh.lastInternalOffset = 1
 		} else if dh.lastName == ".." {
 			dh.lastInternalOffset = 2
@@ -833,6 +859,15 @@ func (dh *DirHandle) ReadDir() (inode *Inode, err error) {
 		}
 		// May be -1 if we remove inodes in loadListing
 		dh.checkDirPosition()
+		if dh.lastInternalOffset < 2 {
+			// loadListing lets go of dh.mu, so another user of the handle may
+			// have rewound it meanwhile. Serve the dot entry as above instead
+			// of indexing Children below zero.
+			if dh.lastInternalOffset == 1 && parent.Parent != nil {
+				return parent.Parent, nil
+			}
+			return parent, nil
+		}
 	}
 
 	if dh.lastInternalOffset-2 >= len(dh.inode.dir.Children) {
@@ -1004,9 +1039,8 @@ func (parent *Inode) removeChildUnlocked(inode *Inode) {
 
 	// POSIX allows parallel readdir() and modifications,
 	// so preserve position of all directory handles
-	for _, dh := range parent.dir.handles {
-		dh.lastInternalOffset = -1
-	}
+	// Handles notice the bump in checkDirPosition and re-find their place by lastName.
+	atomic.AddUint64(&parent.dir.generation, 1)
 	// >= because we use the "last open dir" as the "next" one
 	if parent.dir.lastOpenDirIdx >= i {
 		parent.dir.lastOpenDirIdx--
@@ -1038,9 +1072,8 @@ func (parent *Inode) removeAllChildrenUnlocked() {
 	}
 	// POSIX allows parallel readdir() and modifications,
 	// so reset position of all directory handles
-	for _, dh := range parent.dir.handles {
-		dh.lastInternalOffset = -1
-	}
+	// Handles notice the bump in checkDirPosition and re-find their place by lastName.
+	atomic.AddUint64(&parent.dir.generation, 1)
 	parent.dir.Children = nil
 }
 
@@ -1092,9 +1125,8 @@ func (parent *Inode) insertChildUnlocked(inode *Inode) {
 
 		// POSIX allows parallel readdir() and modifications,
 		// so preserve position of all directory handles
-		for _, dh := range parent.dir.handles {
-			dh.lastInternalOffset = -1
-		}
+		// Handles notice the bump in checkDirPosition and re-find their place by lastName.
+		atomic.AddUint64(&parent.dir.generation, 1)
 		if parent.dir.lastOpenDirIdx >= i {
 			parent.dir.lastOpenDirIdx++
 		}
