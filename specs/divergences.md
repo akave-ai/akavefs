@@ -230,7 +230,7 @@ a divergence updates `specs/` in the same pull request.
 - **Status:** `ours — no upstream fix`
 - **Files:** `core/dir.go`, `core/lookup_cached_race_test.go`
 - **Symbols:** `LookUpCached`; the field `Inode.CacheState`; the test `TestLookUpCachedVersusCacheStateNoCloud`.
-- **Introduced by:** #22.
+- **Introduced by:** #22 (`c0dcfbc`).
 - **Origin:** the atomic read matches TigrisFS `a736b74e`, which also moves the check under `inode.mu`; that restructure is left out. The test is original.
 - **Why:** `SetCacheState` stores `Inode.CacheState` with an atomic operation, under the inode's own lock. `LookUpCached` holds only the parent's lock when it finds a child whose attributes have expired and reads the child's state, to decide whether to return the cached inode or recheck it against the backend, and it read the field plainly. A lookup of such an entry while its state changes — a small-object flush finishing is the case seen in CI — is a data race, and the race detector reports it in the full-suite step of the `race` job. AkaveFS reads the field with `atomic.LoadInt32` there. No lock is added, removed or reordered, and the decision is the one it was: the lookup sees the state from before or after the concurrent change, which are the two orders a lock would have allowed.
 
@@ -245,7 +245,7 @@ a divergence updates `specs/` in the same pull request.
 - **Status:** `ours — no upstream fix`
 - **Files:** `core/goofys_test.go`, `core/goofys_unix_test.go`, `core/goofys_fs_test.go`
 - **Symbols:** the helper `getRoot` and the test `TestRenamePreserveMetadata` in `core/goofys_test.go`; the helper `testReadMyOwnWriteFuse` in `core/goofys_fs_test.go`, which two tests call; the test `TestConcurrentRefDeref` in `core/goofys_unix_test.go`.
-- **Introduced by:** #22.
+- **Introduced by:** #22 (`c0dcfbc`).
 - **Origin:** the same four test races are fixed in TigrisFS `a736b74e`. Its production changes that go with them (`getCloud`/`setCloud`, an atomic `MaxFlushers`) are left out; the changes here are in test code only.
 - **Why:** Four inherited tests create data races of their own, which the race detector reports in the full-suite step of the `race` job. None is a defect in production code, and each hides whatever that step would otherwise show.
 
@@ -257,3 +257,16 @@ a divergence updates `specs/` in the same pull request.
   Not addressed here, and never reported by the race detector in CI: other unlocked writes of the same kind in `core/goofys_test.go` — another assignment to `flags.MaxFlushers`, the `setS3` helper, and other assignments to `dir.cloud`.
 - **On sync conflict:** Take upstream's changes to these tests, then re-check each of the four hunks: the read lock in `getRoot`, the pause through the count of active flushers in `TestRenamePreserveMetadata`, the id read before the goroutines in `TestConcurrentRefDeref`, and the absence of the backend swap in `testReadMyOwnWriteFuse`. If upstream restores an error injection in `testReadMyOwnWriteFuse`, it needs a synchronised way to swap the backend; do not restore the bare assignment to `dir.cloud`.
 - **Upstream status:** No upstream fix was found when this entry was written. `core/goofys_test.go` and `core/goofys_fs_test.go` were identical to upstream before this change. If upstream fixes any of these races, audit its fix and compare it with ours as [README.md](README.md) describes.
+
+## cluster-readdir-double-unlock
+
+- **Status:** `ours — no upstream fix`
+- **Files:** `core/cluster_fs.go`, `core/cluster_readdir_error_test.go`
+- **Symbols:** `ClusterFs.readDir`; the test `TestClusterReadDirListingErrorNoCloud`.
+- **Introduced by:** #25.
+- **Origin:** original.
+- **Why:** `ClusterFs.readDir` takes the directory handle's lock and releases it with a deferred unlock. Upstream's read loop also unlocks it explicitly when `DirHandle.ReadDir` returns an error, so on that return the deferred unlock runs on a mutex that is already unlocked. Go treats that as a fatal error, which ends the process and cannot be recovered: in cluster mode a listing that fails part-way through a directory ends the process of the node serving it, where both callers — `ClusterFsFuse.ReadDir` and `ClusterFsGrpc.ReadDir` — expect an error back. The function's other error return, after `loadChildren`, has no explicit unlock and was never affected. AkaveFS removes the explicit unlock, so every return path releases the lock once, through the defer. Nothing else in the function changes: no lock is added or reordered. On that one path the lock is now still held across the call to `mapAwsError`, which takes none of the filesystem's locks.
+
+  The crash was reproduced by a test, not only read from the code. `TestClusterReadDirListingErrorNoCloud` is fixture-free: `readDir` uses nothing of `ClusterFs` but its `Goofys`, so the test needs no peers or connections. Its backend returns a truncated first page and fails the next one, which makes `loadChildren` succeed and the loop fail. On upstream's code the test binary dies with `fatal error: sync: unlock of unlocked mutex` and a stack through `ClusterFs.readDir`; with the fix the test passes. What was not run is cluster mode itself: the test calls `readDir` directly, so the FUSE and gRPC callers were read, not exercised.
+- **On sync conflict:** Keep the single deferred unlock. If upstream reworks the function, make sure no return path unlocks `dh.mu` twice, then run the JVM-free gate from `AGENTS.md`: a run that dies with `unlock of unlocked mutex` in `ClusterFs.readDir` means the explicit unlock is back. A failed assert is not how this regression shows; the whole run ends.
+- **Upstream status:** No upstream fix was found when this entry was written: upstream's `ClusterFs.readDir` still has the explicit unlock in the loop's error branch. If upstream fixes it, audit its fix and compare it with ours as [README.md](README.md) describes.

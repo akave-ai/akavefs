@@ -417,7 +417,6 @@ func (fs *ClusterFs) readDir(handleId fuseops.HandleID, offset fuseops.DirOffset
 	for {
 		e, err := dh.ReadDir()
 		if err != nil {
-			dh.mu.Unlock()
 			err = mapAwsError(err)
 			return err
 		}
