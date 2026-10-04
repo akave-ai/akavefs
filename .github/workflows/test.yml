@@ -77,19 +77,19 @@ jobs:
         cache-dependency-path: go.sum
 
     # Two test steps, cheapest first. This one needs no JVM and no FUSE mount, so it is
-    # the only part of this job a developer can reproduce locally: a superset of the
-    # JVM-free local gate in AGENTS.md, which filters on 'DirTest' alone. The wider
-    # filter is deliberate — it adds the NoCloud tests, which is where the cold-rename
+    # the only part of this job a developer can reproduce locally: it uses the same
+    # filter as the JVM-free local gate in AGENTS.md. The filter is wider than 'DirTest'
+    # on purpose — it adds the NoCloud tests, which is where the cold-rename
     # and inode-refresh regression tests live. Running it before the jar machinery means
     # a failure here is reported without waiting on s3proxy. -check.f only works from
     # inside core/, and CGO_ENABLED=1 is inline because -race needs cgo.
     - name: Run fixture-free race tests
       run: cd core && CGO_ENABLED=1 GORACE=halt_on_error=1 go test -race -count=1 -check.f 'DirTest|NoCloud' .
       timeout-minutes: 10
-      # Advisory, not blocking: inherited GeeseFS races remain, so this is red today and
-      # no single PR clears it. Flip to blocking when a run reports zero races.
-      # halt_on_error=1 stops at the first report, because the inventory is recorded in
-      # the PR body and the follow-ups; day to day this log only needs to show one.
+      # Advisory, not blocking. This step is expected to be clean: a race report here is
+      # a regression. It stays advisory pending a separate decision to make it blocking.
+      # halt_on_error=1 stops at the first report: any report here is a regression, and
+      # one is enough to show it.
       continue-on-error: true
 
     - name: Cache s3proxy
@@ -126,8 +126,8 @@ jobs:
       env:
         TIMEOUT: 25m
       timeout-minutes: 20
-      # Advisory, not blocking: see the fixture-free step above. Flip to blocking when a
-      # run reports zero races.
+      # Advisory, not blocking: inherited GeeseFS races remain in this step and no single
+      # PR clears them. Flip to blocking when a run reports zero races.
       # No GORACE here, deliberately. Measured: with halt_on_error=1 this step died at
       # the first report in under a second instead of running the suite, so it stopped
       # being a test run and became a yes/no on one race. The fixture-free step above

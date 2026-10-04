@@ -247,12 +247,11 @@ below was observed by running the file against upstream's `core/dir.go`.
 These two reader-versus-mutator tests have no asserts. The race detector is their only
 oracle: without `-race` they pass on any code, and with it they report the defect as a
 `DATA RACE` between `(*DirHandle).Next` and a mutator while the tests themselves still
-count as passed. The exit status does not help either for now. A run of the fixture-free
-tests under the race detector exits non-zero with or without this defect, because of a
-race in the test suite's teardown, tracked in issue #9, and the two test steps of the CI
-`race` job are advisory. Until #9 is fixed, the way to tell is to read the frames of each
-report in the log: a report that names `Next` and one of the mutators is this defect, and
-a report that names the suite's teardown and its timeout watchdog is #9.
+count as passed. The exit status is what tells: a run of the fixture-free tests under the
+race detector in which every test passes exits non-zero only when a race is reported.
+Read the frames of the report in the log: a report that names `Next` and one of the
+mutators is this defect. The two test steps of the CI `race` job are advisory, so there
+the step's conclusion does not show it and the log has to be read.
 
 How many reports the log holds depends on where the tests run. The fixture-free step of
 the CI `race` job sets `GORACE=halt_on_error=1`, so there the process stops at the first
