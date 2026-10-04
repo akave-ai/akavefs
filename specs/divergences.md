@@ -263,7 +263,7 @@ a divergence updates `specs/` in the same pull request.
 - **Status:** `ours — no upstream fix`
 - **Files:** `core/cluster_fs.go`, `core/cluster_readdir_error_test.go`
 - **Symbols:** `ClusterFs.readDir`; the test `TestClusterReadDirListingErrorNoCloud`.
-- **Introduced by:** PR #TBD (fix/cluster-readdir-double-unlock).
+- **Introduced by:** #25.
 - **Origin:** original.
 - **Why:** `ClusterFs.readDir` takes the directory handle's lock and releases it with a deferred unlock. Upstream's read loop also unlocks it explicitly when `DirHandle.ReadDir` returns an error, so on that return the deferred unlock runs on a mutex that is already unlocked. Go treats that as a fatal error, which ends the process and cannot be recovered: in cluster mode a listing that fails part-way through a directory ends the process of the node serving it, where both callers — `ClusterFsFuse.ReadDir` and `ClusterFsGrpc.ReadDir` — expect an error back. The function's other error return, after `loadChildren`, has no explicit unlock and was never affected. AkaveFS removes the explicit unlock, so every return path releases the lock once, through the defer. Nothing else in the function changes: no lock is added or reordered. On that one path the lock is now still held across the call to `mapAwsError`, which takes none of the filesystem's locks.
 
