@@ -12,11 +12,11 @@ a divergence updates `specs/` in the same pull request.
 ## branding-runtime
 
 - **Status:** `branding`
-- **Files:** `core/cfg/flags.go`, `core/goofys_fuse.go`, `core/cluster_fs_fuse.go`, `core/backend_s3.go`, `core/cfg/flags_test.go`
-- **Symbols:** `NewApp` (the application name `akavefs` and the flag usage strings that name the product); `mountFuseFS` and `MountCluster` (FUSE `Subtype: "akavefs"`); `newS3` (the `AkaveFS` User-Agent product name); `TestNewAppUsesAkaveFSName`.
-- **Introduced by:** #1 (commits `650b125`, `b577179`, `34d6497`).
+- **Files:** `core/cfg/flags.go`, `core/goofys_fuse.go`, `core/cluster_fs_fuse.go`, `core/backend_s3.go`, `core/goofys_windows.go`, `core/cfg/flags_test.go`
+- **Symbols:** `NewApp` (the application name `akavefs` and the flag usage strings that name the product); `mountFuseFS` and `MountCluster` (FUSE `Subtype: "akavefs"`); `newS3` (the `AkaveFS` User-Agent product name); `MountWin` (the error message `AkaveFS initialization failed`); `TestNewAppUsesAkaveFSName`.
+- **Introduced by:** #1 (commits `650b125`, `b577179`, `34d6497`); the Windows error message by #36.
 - **Origin:** original.
-- **Why:** The product is called AkaveFS, so these run-time names were changed: the command name in help output and the two flag descriptions that named the product, the FUSE subtype shown in the mount table, and the product name in the User-Agent sent to the object store. That is what was renamed, not every run-time string: `kept-geesefs-names` lists the GeeseFS names still in the tree, among them an error message in `core/goofys_windows.go`. The FUSE subtype also has to match the name that the xfstests configuration mounts (see `scripts-and-test-harness`). The User-Agent keeps the inherited version constant; only the product name changed.
+- **Why:** The product is called AkaveFS, so these run-time names were changed: the command name in help output and the two flag descriptions that named the product, the FUSE subtype shown in the mount table, the product name in the User-Agent sent to the object store, and the error message a Windows user sees when the mount fails to initialise. That is what was renamed, not every run-time string: `kept-geesefs-names` lists the GeeseFS names still in the tree. The FUSE subtype also has to match the name that the xfstests configuration mounts (see `scripts-and-test-harness`). The User-Agent keeps the inherited version constant; only the product name changed.
 - **On sync conflict:** Keep the AkaveFS strings and take everything else from upstream. Each change is a single string, so resolve by hand rather than choosing one side of the file. If upstream adds a new user-visible string that names GeeseFS, rename it in the sync pull request and add its file here. `TestNewAppUsesAkaveFSName` fails if the application name is lost.
 - **Upstream status:** Not applicable; upstream keeps its own name. This entry stays for as long as the fork has its own name.
 
@@ -140,7 +140,7 @@ a divergence updates `specs/` in the same pull request.
 ## kept-geesefs-names
 
 - **Status:** `kept GeeseFS name`
-- **Files:** kept on purpose: `go.mod`, `core/pb/fs_grpc.proto`, `core/pb/recovery.proto`, `debian/control`, `.github/workflows/release.yml`, `core/cfg/flags.go`, `core/backend_s3.go`, `core/handles.go`, `core/goofys_unix_test.go`, `core/backend_s3_test.go`, `core/backend_azblob_test.go`, `test/xfstests.config`, `test/run-xfstests.sh`, `debian/changelog`, `bench/README.md`, `bench/bench.geesefs`, `AUTHORS`, `contrib/dump-bufs.star`, `core/dir.go`, `core/goofys_test.go`, `core/ycs3ext/types.go`, and the Go files that import the module, which are a category and are not listed one by one. Found, undecided: `core/goofys_windows.go`, `debian/rules`, `bench/Dockerfile`, `bench/Dockerfile.azure`, `bench/run_bench.sh`, `test/cluster/test_read_write_ffmpeg.sh`, `doc/geesefs.png`, `doc/geesefs.svg`, `doc/geesefs.txt`, and two sentences in `bench/README.md`.
+- **Files:** kept on purpose: `go.mod`, `core/pb/fs_grpc.proto`, `core/pb/recovery.proto`, `debian/control`, `.github/workflows/release.yml`, `core/cfg/flags.go`, `core/backend_s3.go`, `core/handles.go`, `core/goofys_unix_test.go`, `core/backend_s3_test.go`, `core/backend_azblob_test.go`, `test/xfstests.config`, `test/run-xfstests.sh`, `debian/changelog`, `bench/README.md`, `bench/bench.geesefs`, `AUTHORS`, `contrib/dump-bufs.star`, `core/dir.go`, `core/goofys_test.go`, `core/ycs3ext/types.go`, and the Go files that import the module, which are a category and are not listed one by one. Found, undecided: `debian/rules`, `bench/Dockerfile`, `bench/Dockerfile.azure`, `bench/run_bench.sh`, `test/cluster/test_read_write_ffmpeg.sh`, `doc/geesefs.png`, `doc/geesefs.svg`, `doc/geesefs.txt`, and two sentences in `bench/README.md`.
 - **Symbols:** given per file under **Why**.
 - **Introduced by:** #1. Its description has a section "Intentionally retained GeeseFS references", called "the list" below. The names under "found, undecided" were not introduced by anything: the rename in #1 did not reach them, and the list does not name them.
 - **Origin:** upstream names, left as they were.
@@ -156,7 +156,6 @@ a divergence updates `specs/` in the same pull request.
   - *AUTHORS:* `AUTHORS`.
 
   **Found, undecided.** These carry the GeeseFS name and the list does not name them. They are leftovers that were found when this entry was written, not deliberate keeps. Nobody has decided whether each should be kept or renamed; until someone does, leave them as they are, and record the decision here when it is made.
-  - `core/goofys_windows.go`: the error message `GeeseFS initialization failed` returned by `MountWin`. A user on Windows can see it at run time, which is why `branding-runtime` points here.
   - `debian/rules`: `DH_GOLANG_BUILDPKG` is set to the module path. The file overrides the build, test and install steps, and whether the variable still has any effect was not checked.
   - `bench/Dockerfile` and `bench/Dockerfile.azure`: the source directory inside the image, and the `ENTRYPOINT` under it, are spelled as the module path.
   - `bench/run_bench.sh`: the default value of `BUCKET`.
@@ -348,7 +347,7 @@ a divergence updates `specs/` in the same pull request.
 - **Status:** `ours — no upstream fix`
 - **Files:** `core/goofys.go`, `core/dir.go`, `core/evict_entry_recheck_test.go`, `core/remove_expired_recheck_test.go`
 - **Symbols:** `Goofys.EvictEntry`, `Inode.removeExpired`; the tests `TestEvictEntryVersusOpenNoCloud` and `TestRemoveExpiredVersusOpenNoCloud`.
-- **Introduced by:** #34 (`a22f7ce`) for `EvictEntry`, #35 for `removeExpired`.
+- **Introduced by:** #34 (`a22f7ce`) for `EvictEntry`, #35 (`137d674`) for `removeExpired`.
 - **Origin:** original.
 - **Why:** `EvictEntry` drops an inode from the cache when the cache is over its limit. It refuses an inode that has an open handle, unsaved state, or, for a directory, modified children. Upstream reads those three things before it takes any lock, then takes the parent's and the child's locks and evicts without reading them again. `Inode.OpenFile` raises the handle count under the child's lock alone, so an open can finish between the first read and the locks, and the file is then evicted with a handle on it: marked dead, taken out of its directory and out of the filesystem's inode table while a caller holds it open. AkaveFS reads the three conditions a second time once both locks are held. With the parent's lock held no creation in that directory can run, and with the child's lock held no open of the child can, so the second reading holds for the eviction. The first, unlocked reading stays as the cheap early exit it was. Eviction can only become more reluctant; no lock is added or reordered.
 
