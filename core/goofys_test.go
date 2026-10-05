@@ -203,6 +203,7 @@ func (s *GoofysTest) readDirIntoCache(t *C, inode fuseops.InodeID) {
 }
 
 func (s *GoofysTest) TestReadDirCacheLookup(t *C) {
+	s.useSwitchBackend(t)
 	s.fs.flags.StatCacheTTL = 1 * time.Minute
 
 	s.readDirIntoCache(t, fuseops.RootInodeID)
@@ -510,8 +511,9 @@ func (s *GoofysTest) TestWriteLargeMem20M(t *C) {
 func (s *GoofysTest) TestWriteLargeTruncateMem20M(t *C) {
 	fileName := "testLargeTruncate"
 
+	sw := s.useSwitchBackend(t)
 	root := s.getRoot(t)
-	s3 := root.dir.cloud
+	s3 := sw.get()
 	cloud := &TestBackend{StorageBackend: s3}
 	cloud.MultipartBlobAddFunc = func(param *MultipartBlobAddInput) (*MultipartBlobAddOutput, error) {
 		if param.PartNumber > 20 {
@@ -523,7 +525,7 @@ func (s *GoofysTest) TestWriteLargeTruncateMem20M(t *C) {
 		// MultipartBlobCopyFunc returning error makes sure it doesn't get called
 		return nil, syscall.ENOSYS
 	}
-	root.dir.cloud = cloud
+	sw.swap(cloud)
 
 	err := root.Unlink(fileName)
 	t.Assert(err == nil || err == syscall.ENOENT, Equals, true)
@@ -611,8 +613,9 @@ func (s *GoofysTest) TestMultiStreamMem100M(t *C) {
 	inodes := make([]*Inode, len(streams))
 	fhs := make([]*FileHandle, len(streams))
 
+	sw := s.useSwitchBackend(t)
 	root := s.getRoot(t)
-	s3 := root.dir.cloud
+	s3 := sw.get()
 	cloud := &TestBackend{StorageBackend: s3}
 	// Check that all uploads work optimally and don't complete until the end
 	cloud.MultipartBlobCommitFunc = func(param *MultipartBlobCommitInput) (*MultipartBlobCommitOutput, error) {
@@ -634,7 +637,7 @@ func (s *GoofysTest) TestMultiStreamMem100M(t *C) {
 		seenMu.Unlock()
 		return s3.MultipartBlobAdd(param)
 	}
-	root.dir.cloud = cloud
+	sw.swap(cloud)
 
 	for i, filename := range streams {
 		err := root.Unlink(filename)
@@ -1520,16 +1523,19 @@ func (s *GoofysTest) disableS3() {
 
 func (s *GoofysTest) setS3(back StorageBackend) StorageBackend {
 	time.Sleep(1 * time.Second) // wait for any background goroutines to finish
-	dir := s.fs.inodes[fuseops.RootInodeID].dir
-	old := dir.cloud
+	// The sleep orders nothing against a goroutine that reads the root's
+	// backend: Inode.cloud() runs in the flusher at any time. What makes the
+	// replacement safe is the atomic delegate in switchBackend, which the
+	// test installs with useSwitchBackend; the root's dir.cloud is not
+	// written here.
+	sw := s.switchBackendOrPanic()
 	if back == nil {
 		back = StorageBackendInitError{
 			fmt.Errorf("cloud disabled"),
-			*dir.cloud.Capabilities(),
+			*sw.get().Capabilities(),
 		}
 	}
-	dir.cloud = back
-	return old
+	return sw.swap(back)
 }
 
 func (s *GoofysTest) TestWriteAnonymous(t *C) {
@@ -1718,6 +1724,7 @@ func (s *GoofysTest) TestXAttrGet(t *C) {
 }
 
 func (s *GoofysTest) TestXAttrGetCached(t *C) {
+	s.useSwitchBackend(t)
 	xattrPrefix := s.cloud.Capabilities().Name + "."
 
 	s.fs.flags.StatCacheTTL = 1 * time.Minute
@@ -1903,6 +1910,7 @@ func (s *GoofysTest) TestReadDirSlurpSubtree(t *C) {
 	if _, ok := s.cloud.Delegate().(*S3Backend); !ok {
 		t.Skip("only for S3")
 	}
+	s.useSwitchBackend(t)
 	s.fs.flags.StatCacheTTL = 1 * time.Minute
 
 	s.getRoot(t).dir.seqOpenDirScore = 2
@@ -1924,6 +1932,7 @@ func (s *GoofysTest) TestReadDirSlurpSubtree(t *C) {
 }
 
 func (s *GoofysTest) TestReadDirCached(t *C) {
+	s.useSwitchBackend(t)
 	s.fs.flags.StatCacheTTL = 1 * time.Minute
 
 	s.getRoot(t).dir.seqOpenDirScore = 2
@@ -2070,6 +2079,7 @@ func (s *GoofysTest) TestSlurpFileAndDir(t *C) {
 	if _, ok := s.cloud.Delegate().(*S3Backend); !ok {
 		t.Skip("only for S3")
 	}
+	s.useSwitchBackend(t)
 	prefix := "TestSlurpFileAndDir/"
 	// fileAndDir is both a file and a directory, and we are
 	// slurping them together as part of our listing optimization
@@ -2772,6 +2782,7 @@ func (c includes) Check(params []interface{}, names []string) (res bool, error s
 }
 
 func (s *GoofysTest) TestWriteUnlinkFlush(t *C) {
+	s.useSwitchBackend(t)
 	root := s.getRoot(t)
 
 	dir, err := root.MkDir("dir")
@@ -2832,6 +2843,7 @@ func (s *GoofysTest) TestIssue474(t *C) {
 }
 
 func (s *GoofysTest) TestSlurpDisappear(t *C) {
+	s.useSwitchBackend(t)
 	s.fs.flags.StatCacheTTL = 1 * time.Second
 
 	in, err := s.fs.LookupPath("dir2/dir3")
