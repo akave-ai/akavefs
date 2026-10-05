@@ -917,7 +917,16 @@ func (fs *Goofys) RefreshInodeCache(inode *Inode) error {
 					Name:   en.Name,
 				})
 			}
-			dh.Next(en.Name)
+			// The handle has to remember "." and ".." for the dot entries and
+			// not the directory's own name: an invalidated handle finds its
+			// place again by that name.
+			name := en.Name
+			if dh.lastInternalOffset == 0 {
+				name = "."
+			} else if dh.lastInternalOffset == 1 {
+				name = ".."
+			}
+			dh.Next(name)
 		}
 		dh.CloseDir()
 		dh.mu.Unlock()

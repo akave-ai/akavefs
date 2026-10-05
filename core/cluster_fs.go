@@ -424,14 +424,18 @@ func (fs *ClusterFs) readDir(handleId fuseops.HandleID, offset fuseops.DirOffset
 			break
 		}
 
-		n := fuseutil.WriteDirent(dst[*bytesRead:], makeDirEntry(e, dh.lastExternalOffset))
+		dirent := makeDirEntry(e, dh.lastExternalOffset)
+		n := fuseutil.WriteDirent(dst[*bytesRead:], dirent)
 		if n == 0 {
 			break
 		}
 
 		*bytesRead += n
-		// We have to modify it here because WriteDirent MAY not send the entry
-		dh.Next(e.Name)
+		// We have to modify it here because WriteDirent MAY not send the entry.
+		// The handle has to remember "." and ".." for the dot entries and not
+		// the directory's own name: an invalidated handle finds its place
+		// again by that name.
+		dh.Next(dirent.Name)
 	}
 
 	return nil
