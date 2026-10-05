@@ -821,6 +821,16 @@ func (parent *Inode) removeExpired(from string) {
 			atomic.LoadInt32(&childTmp.CacheState) <= ST_DEAD &&
 			(!childTmp.isDir() || atomic.LoadInt64(&childTmp.dir.ModifiedChildren) == 0) {
 			childTmp.mu.Lock()
+			// The count and the state were read above without the child's
+			// lock, and an open raises the count under that lock alone, so
+			// one can have finished since. They are read again here, where
+			// no open of this child can run.
+			if atomic.LoadInt32(&childTmp.fileHandles) > 0 ||
+				atomic.LoadInt32(&childTmp.CacheState) > ST_DEAD ||
+				childTmp.isDir() && atomic.LoadInt64(&childTmp.dir.ModifiedChildren) > 0 {
+				childTmp.mu.Unlock()
+				continue
+			}
 			childTmp.resetCache()
 			childTmp.SetCacheState(ST_DEAD)
 			notifications = append(notifications, &fuseops.NotifyDelete{
