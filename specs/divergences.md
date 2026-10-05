@@ -318,7 +318,7 @@ a divergence updates `specs/` in the same pull request.
 - **Status:** `ours — no upstream fix`
 - **Files:** `core/dir.go`, `core/dir_stale_listing_test.go`
 - **Symbols:** `listObjectsFlat`; the test `TestDirHandleDuplicatePageKeepsListingNoCloud`.
-- **Introduced by:** PR #TBD (`fix/stale-listing-page`).
+- **Introduced by:** #30.
 - **Origin:** original.
 - **Why:** `listObjectsFlat` reads the directory's `listMarker`, releases `dh.mu` and the directory's lock around the backend request, and upstream applies the answer whatever happened to the directory meanwhile. Nothing marks a listing as in flight, so two handles that read the same unlisted directory both request the page that follows the same marker. The first answer is applied: the children grow, `lastFromCloud` names the last entry of the page and `listMarker` moves to it. `DirHandle.ReadDir` serves the cached children and, on handing out the entry `lastFromCloud` names, clears it, which is how it asks for the next page on the following call. When the second, duplicate answer is applied after that, `handleListResult` finds `lastFromCloud` cleared and sets it to the end of the same page again. The handle that was served that entry already stands at the end of the cached children; its next `ReadDir` skips the listing loop because `lastFromCloud` is set, and returns end-of-directory with the rest of the directory unlisted. The reader gets a listing cut on a page boundary and no error, while the other handle gets the whole directory. An answer that is merely late, arriving after another handle has moved the marker further, has the same effect.
 
