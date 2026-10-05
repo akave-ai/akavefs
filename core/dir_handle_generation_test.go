@@ -308,7 +308,7 @@ func (s *GoofysTest) TestDirHandleSealKeepsLockOrderNoCloud(t *C) {
 	// removeExpired drops it and calls NotifyCallback with root.mu held. That
 	// callback is the only hook inside the window under test.
 	root.dir.refreshStartTime = time.Now()
-	root.findChildUnlocked("b").AttrTime = time.Now().Add(-time.Hour)
+	root.findChildUnlocked("b").AttrTime.Store(time.Now().Add(-time.Hour))
 	root.mu.Unlock()
 
 	dh := root.OpenDir()
