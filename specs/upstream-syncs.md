@@ -68,3 +68,23 @@ as audits at the time.
   was first written afterwards, as of origin master `ddd4732`, and each entry's
   **Upstream status** was checked against upstream master as of `2fe4d9c`. That is the
   check the entries mean when they refer to this log.
+
+## Sync of `2fe4d9c` (2026-10-05)
+
+- **Upstream commit merged:** `2fe4d9c` — three commits after the previous sync; no new
+  upstream release.
+- **Sync pull request:** #32
+- **Merge commit:** the merge of upstream itself is `a6dd193`, on the sync branch. The
+  commit that lands it on master is recorded by the next change to this folder.
+- **Conflicts:** none.
+
+| Upstream change | What it does | Audit outcome | Reason |
+|---|---|---|---|
+| Upstream #206 (`b3a2cec`) | On the S3 backend, a self-copy — used only to rewrite an object's metadata — that the server rejects with `EntityTooLarge` is retried as a multipart copy. The multipart copy helper also aborts an upload it created itself when the copy fails. Adds `core/backend_s3_copy_test.go`. | adopt | We had no fix of our own to compare. The retry is limited to a self-copy, to that one error code and to non-GCS backends, and the forced pass cannot retry again. The object is replaced only when the multipart upload completes, parts are copied on condition that the source's ETag still matches, and an abort discards parts and never the object. The abort leaves an upload id supplied by the caller alone. TigrisFS took the same change as a cherry-pick (its #53, `8455161`), so there was no second design to weigh. Its test passed locally under the race detector on the merged tree, and failed when the retry was disabled. Two limits are shared with the large-copy path that already existed and are not new: the forced pass reads the size and ETag afresh, so it guards against a change during the copy and not before it, and a multipart copy does not carry object tags. |
+| Upstream #209 (`599ad44`, `2fe4d9c`) | Deletes `.gitmodules` and `core/import os.py`. | adopt | `.gitmodules` described submodules under `vendor/` that the tree does not contain, and nothing in the build, the workflows or the test scripts refers to either file. |
+
+- **Specs entries re-checked:** every entry, all unchanged. The incoming commits touch
+  four files. Of those only `core/backend_s3.go` is named by the register, in
+  `branding-runtime` and `kept-geesefs-names`, and what those entries describe in it is
+  as it was. No incoming commit fixes a defect that an `ours — no upstream fix` entry
+  covers, so each such entry's **Upstream status** now holds as of `2fe4d9c`.
