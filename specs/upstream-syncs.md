@@ -74,8 +74,8 @@ as audits at the time.
 - **Upstream commit merged:** `2fe4d9c` — three commits after the previous sync; no new
   upstream release.
 - **Sync pull request:** #32
-- **Merge commit:** the merge of upstream itself is `a6dd193`, on the sync branch. The
-  commit that lands it on master is recorded by the next change to this folder.
+- **Merge commit:** `a15b8d3` on master. The merge of upstream itself is `a6dd193`, on the
+  sync branch.
 - **Conflicts:** none.
 
 | Upstream change | What it does | Audit outcome | Reason |

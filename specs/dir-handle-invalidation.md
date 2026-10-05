@@ -139,12 +139,14 @@ The external offset is what identifies this state, and `lastName` is not. The ex
 offset is set to zero when a handle is created, by `Seek` with offset 0, and by
 `ClusterFs.readDir` when it is called with offset 0; `Next` increments it, and the read
 loops call `Next` after each entry they hand out. An empty `lastName` says less. The
-root's name is empty, and two callers pass the inode's name to `Next` for the dot
-entries instead of "." and "..": `RefreshInodeCache` and `ClusterFs.readDir`. A root
-handle used by one of them has an empty `lastName` after it has returned "." and "..",
-exactly like a handle that has returned nothing. A restart keyed on the empty name would
-make that handle return the dot entries a second time. The FUSE and Windows read loops
-pass "." and "..".
+root's name is empty, and `Next` records whatever name its caller passes. When this
+check was written, two callers passed the inode's name for the dot entries instead of
+"." and "..": `RefreshInodeCache` and `ClusterFs.readDir`. A root handle used by one of
+them had an empty `lastName` after it had returned "." and "..", exactly like a handle
+that has returned nothing. A restart keyed on the empty name would have made that handle
+return the dot entries a second time. Both callers pass the dot names now, as the FUSE
+and Windows read loops always did (see `dot-entry-names` in the register), but nothing
+in `Next` enforces that, so the check stays on the offset.
 
 **After the listing step, a small index is served as a dot entry.** In
 `DirHandle.ReadDir`, after `loadListing` and the second `checkDirPosition`, an index
@@ -157,15 +159,11 @@ upstream placed it on the first child.
 
 **Known limits.** These are open, not solved:
 
-- A root handle that has returned only "." through a caller that passes the inode's name
-  (`RefreshInodeCache`, `ClusterFs.readDir`) has an empty `lastName` and an external
-  offset of one. If it is invalidated in that state, the inherited search places it on
-  the first child and ".." is skipped. Upstream behaves the same. The tests that check
-  for a needless bump use this very effect as their detector, so a fix for it has to give
-  those tests another detector. For a directory below the root, `ClusterFs.readDir`
-  leaves an inode name in `lastName` after a dot entry as well, and the inherited search
-  then looks for that name among the children. This was read from the code and is not
-  exercised by a test.
+- Closed since: a handle that had returned a dot entry through `RefreshInodeCache` or
+  `ClusterFs.readDir` remembered the directory's own name, so an invalidation in that
+  state skipped "..". Both callers now pass "." and ".."; see `dot-entry-names` in the
+  register. The tests here that check for a needless bump call `Next` themselves with the
+  inode's name, so they still use that effect as their detector and were not changed.
 - Closed since: `ClusterFs.readDir` used to unlock `dh.mu` on the error path of its read
   loop although the unlock is already deferred. That is fixed and covered by a test; see
   `cluster-readdir-double-unlock` in the register. It was not part of this divergence.
@@ -316,8 +314,8 @@ left out:
 
 - **The bump in `sealDir`.** Sealing does not change `Children` by itself, and a removal
   inside it already bumps. The extra bump invalidated handles each time a directory was
-  sealed, which makes a handle skip ".." in the situation described under the first known
-  limit.
+  sealed, which made a handle skip ".." in the situation that the first known limit
+  describes as closed.
 - **The change to `listObjectsFlat`.** The port released `dh.mu` around `sealDir` and
   took it again while holding the directory's lock, and then stamped the handle with the
   counter value read after the seal. The first is against the lock order and lets two

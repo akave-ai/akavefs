@@ -671,9 +671,9 @@ func (dh *DirHandle) checkDirPosition() {
 		if dh.lastExternalOffset == 0 {
 			// Nothing has been returned yet (fresh handle or rewind), so restart
 			// at "." instead of skipping "." and "..". The external offset says
-			// so and lastName does not: the root's name is empty, and some
-			// callers pass the inode's name to Next for the dot entries, so a
-			// root handle past ".." has an empty lastName as well.
+			// so and lastName does not: the root's name is empty, and Next
+			// takes whatever name its caller passes for the dot entries, so a
+			// root handle past ".." can have an empty lastName as well.
 			dh.lastInternalOffset = 0
 		} else if dh.lastName == "." {
 			dh.lastInternalOffset = 1
