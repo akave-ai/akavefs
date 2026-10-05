@@ -143,10 +143,10 @@ root's name is empty, and `Next` records whatever name its caller passes. When t
 check was written, two callers passed the inode's name for the dot entries instead of
 "." and "..": `RefreshInodeCache` and `ClusterFs.readDir`. A root handle used by one of
 them had an empty `lastName` after it had returned "." and "..", exactly like a handle
-that has returned nothing. Both callers pass the dot names now (see `dot-entry-names`
-in the register), but nothing in `Next` enforces that, so the check stays on the offset. A restart keyed on the empty name would
-make that handle return the dot entries a second time. The FUSE and Windows read loops
-pass "." and "..".
+that has returned nothing. A restart keyed on the empty name would have made that handle
+return the dot entries a second time. Both callers pass the dot names now, as the FUSE
+and Windows read loops always did (see `dot-entry-names` in the register), but nothing
+in `Next` enforces that, so the check stays on the offset.
 
 **After the listing step, a small index is served as a dot entry.** In
 `DirHandle.ReadDir`, after `loadListing` and the second `checkDirPosition`, an index
@@ -314,8 +314,8 @@ left out:
 
 - **The bump in `sealDir`.** Sealing does not change `Children` by itself, and a removal
   inside it already bumps. The extra bump invalidated handles each time a directory was
-  sealed, which makes a handle skip ".." in the situation described under the first known
-  limit.
+  sealed, which made a handle skip ".." in the situation that the first known limit
+  describes as closed.
 - **The change to `listObjectsFlat`.** The port released `dh.mu` around `sealDir` and
   took it again while holding the directory's lock, and then stamped the handle with the
   counter value read after the seal. The first is against the lock order and lets two

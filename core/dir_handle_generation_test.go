@@ -261,9 +261,10 @@ func (s *GoofysTest) TestDirHandleFlatListingKeepsPositionNoCloud(t *C) {
 // Sealing a directory whose children did not change must not invalidate its
 // open handles.
 //
-// A handle on the root that has returned only "." is what shows it. Its callers
-// pass the root's empty name to Next, and an invalidated handle re-finds its
-// place from that name, which lands past "..". So a needless invalidation here
+// A handle on the root that has returned only "." is what shows it. This test
+// passes the root's empty name to Next itself, as the cluster and refresh
+// callers used to, and an invalidated handle re-finds its place from that
+// name, which lands past "..". So a needless invalidation here
 // makes the handle skip "..", while an untouched handle returns it.
 func (s *GoofysTest) TestDirHandleNoopSealKeepsDotEntriesNoCloud(t *C) {
 	root := s.newDirHandleGenerationRootNoCloud(t, nil, "b", "d")
