@@ -250,8 +250,9 @@ oracle: without `-race` they pass on any code, and with it they report the defec
 count as passed. The exit status is what tells: a run of the fixture-free tests under the
 race detector in which every test passes exits non-zero only when a race is reported.
 Read the frames of the report in the log: a report that names `Next` and one of the
-mutators is this defect. The two test steps of the CI `race` job are advisory, so there
-the step's conclusion does not show it and the log has to be read.
+mutators is this defect. In the CI `race` job the fixture-free step, which runs these
+tests, is blocking and fails on such a report; the full-suite step is advisory, so there
+the step's conclusion does not show a report and the log has to be read.
 
 How many reports the log holds depends on where the tests run. The fixture-free step of
 the CI `race` job sets `GORACE=halt_on_error=1`, so there the process stops at the first

@@ -62,10 +62,10 @@ These mirror `.github/workflows/test.yml`. Use them, not commands you compose yo
   fixture-free step with the same `'DirTest|NoCloud'` filter as the JVM-free command
   above, both under `-race`. It keeps `SAME_PROCESS_MOUNT=1`, which the `build` job no
   longer sets: without it the suite forks `../akavefs`, which that job never builds.
-  The fixture-free step is expected to report no race, and a report there is a
-  regression; it stays advisory until we decide to make it blocking. The full-suite
-  step is advisory while inherited GeeseFS races remain; it flips to blocking when a
-  run reports zero races.
+  The fixture-free step is blocking: a race report or a failing test there fails the
+  job. The full-suite step is advisory, because tests in that suite still change
+  filesystem settings on a running filesystem without synchronisation; read its log
+  for race reports rather than trusting the green mark.
 
 ## Commits
 

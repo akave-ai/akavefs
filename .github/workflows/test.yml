@@ -86,11 +86,10 @@ jobs:
     - name: Run fixture-free race tests
       run: cd core && CGO_ENABLED=1 GORACE=halt_on_error=1 go test -race -count=1 -check.f 'DirTest|NoCloud' .
       timeout-minutes: 10
-      # Advisory, not blocking. This step is expected to be clean: a race report here is
-      # a regression. It stays advisory pending a separate decision to make it blocking.
+      # Blocking: this step is expected to be clean, so a race report or a failing test
+      # here fails the job.
       # halt_on_error=1 stops at the first report: any report here is a regression, and
       # one is enough to show it.
-      continue-on-error: true
 
     - name: Cache s3proxy
       uses: actions/cache@v4
