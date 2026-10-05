@@ -1035,7 +1035,7 @@ func MountWin(
 	fs, err = NewGoofys(ctx, bucketName, flags)
 	if fs == nil {
 		if err == nil {
-			err = fmt.Errorf("GeeseFS initialization failed")
+			err = fmt.Errorf("AkaveFS initialization failed")
 		}
 		return
 	}
