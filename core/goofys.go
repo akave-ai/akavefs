@@ -681,8 +681,15 @@ func (fs *Goofys) EvictEntry(id fuseops.InodeID) bool {
 		tmpParent.mu.Unlock()
 		return false
 	}
+	// The child's count and state were read above without a lock, and an open
+	// raises the count under the child's lock alone, so one can have finished
+	// since. They are read again here, with the locks held, where no open or
+	// creation of this child can run.
 	if childTmp.Parent != tmpParent ||
-		atomic.LoadInt32(&tmpParent.fileHandles) > 0 {
+		atomic.LoadInt32(&tmpParent.fileHandles) > 0 ||
+		atomic.LoadInt32(&childTmp.fileHandles) > 0 ||
+		atomic.LoadInt32(&childTmp.CacheState) > ST_DEAD ||
+		childTmp.isDir() && atomic.LoadInt64(&childTmp.dir.ModifiedChildren) > 0 {
 		childTmp.mu.Unlock()
 		tmpParent.mu.Unlock()
 		return false
