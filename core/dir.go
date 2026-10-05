@@ -615,6 +615,19 @@ func (dh *DirHandle) listObjectsFlat() (start string, err error) {
 	}
 
 	dh.inode.mu.Lock()
+	if dh.inode.dir.listMarker != *params.StartAfter {
+		// The locks were released around the request and nothing stops a
+		// second handle from requesting a page that is already requested, so
+		// another handle may have listed the same page meanwhile and moved
+		// the marker on. Applying this page as well would set lastFromCloud
+		// back to an entry that a handle has already been served; that
+		// handle would then skip its next listing and take the end of the
+		// cached children for the end of the directory.
+		// Drop the page: the callers' loops list again from the current marker.
+		dh.inode.fs.completeInflightListing(myList)
+		dh.inode.mu.Unlock()
+		return
+	}
 	dh.handleListResult(resp, prefix, dh.inode.fs.completeInflightListing(myList))
 
 	if resp.IsTruncated {
